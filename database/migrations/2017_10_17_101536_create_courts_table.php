@@ -23,14 +23,16 @@ class CreateCourtsTable extends Migration
             $table->string('phone', 30)->nullable();
             $table->text('email')->nullable();
 
-            $table->string('region');
+            $table->unsignedInteger('region_id')->index();
             $table->text('address');
-            $table->string('code', 15);
+            $table->string('code', 15)->index();
 
             $table->string('lon', 20);
             $table->string('lat', 20);
 
             $table->date('synced_at')->nullable();
+
+            $table->foreign('region_id')->references('id')->on('court_regions')->onDelete('cascade');
         });
     }
 

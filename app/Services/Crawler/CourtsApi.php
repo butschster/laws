@@ -2,6 +2,7 @@
 
 namespace App\Services\Crawler;
 
+use App\Exceptions\CourtInformationNotFound;
 use App\Services\Crawler\Parsers\CourtInformationParser;
 use App\Services\Crawler\Parsers\CourtJurisdictionsParser;
 use Symfony\Component\CssSelector\CssSelectorConverter;
@@ -9,9 +10,6 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class CourtsApi
 {
-    const TYPE_COMMON = 'fs'; // суды РФ общей юрисдикции
-    const TYPE_MIR = 'mir'; // мировые суда РФ
-
     // Паттерн разбора ответа списка судов
     const PATTERN = "/balloons_user\[\'(?<code>[0-9A-Z]+)\'\]\.length\]\=\{type\:\'(?<type>([a-z]+))\'\,name\:\'(?<name>(.*))\'\,adress\:\'(?<address>(.*))\'\,coord\:\[(?<lat>[0-9]{2,4}\.[0-9]+)\,(?<lon>[0-9]{2,4}\.[0-9]+)\]/";
 
@@ -37,7 +35,7 @@ class CourtsApi
      */
     public function getCourts(string $type): array
     {
-        return cache()->rememberForever('courts', function () use($type) {
+        return cache()->remember('courts:'.$type, now()->addDay(), function () use($type) {
             $res = $this->client->request('GET', 'https://sudrf.ru/index.php?id=300&act=ya_coords&type_suds='.$type);
 
             $response = $res->getBody()->getContents();
@@ -68,14 +66,24 @@ class CourtsApi
      * @param string $code
      *
      * @return array
+     * @throws CourtInformationNotFound
      */
     public function getCourt(string $code): array
     {
-        $res = $this->client->request('GET', 'https://sudrf.ru/index.php?id=300&act=ya_info&vnkod='.$code);
+        try {
+            $res = $this->client->request('GET', 'https://sudrf.ru/index.php?id=300&act=ya_info&vnkod='.$code);
+        } catch (\GuzzleHttp\Exception\ConnectException $exception) {
+            throw new CourtInformationNotFound($code);
+        } catch (\GuzzleHttp\Exception\ClientException $exception) {
+            throw new CourtInformationNotFound($code);
+        }
 
-        $parser = new CourtInformationParser();
-
-        return $parser->parse($res->getBody()->getContents());
+        try {
+            $parser = new CourtInformationParser();
+            return $parser->parse($res->getBody()->getContents());
+        } catch (\Exception $exception) {
+            throw new CourtInformationNotFound($code);
+        }
     }
 
     /**

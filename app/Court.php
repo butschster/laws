@@ -8,6 +8,22 @@ use Illuminate\Database\Eloquent\Model;
 class Court extends Model
 {
 
+    const TYPE_COMMON = 'fs'; // суды РФ общей юрисдикции
+    const TYPE_MIR    = 'mir'; // мировые суда РФ
+
+    /**
+     * Получение списка типов судов
+     *
+     * @return array
+     */
+    public static function types()
+    {
+        return [
+            static::TYPE_COMMON => 'Суд общей юрисдикции',
+            static::TYPE_MIR => 'Мировой суд',
+        ];
+    }
+
     /**
      * The attributes that aren't mass assignable.
      *
@@ -19,15 +35,27 @@ class Court extends Model
      * @var array
      */
     protected $casts = [
-        'email' => 'array'
+        'email' => 'array',
     ];
 
     /**
+     * Получение списка подсудностей
+     *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function jurisdictions()
     {
         return $this->hasMany(CourtJurisdiction::class);
+    }
+
+    /**
+     * Получение региона
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function region()
+    {
+        return $this->belongsTo(CourtRegion::class);
     }
 
     /**
@@ -42,15 +70,15 @@ class Court extends Model
     }
 
     /**
+     * Получение списка судов с устаревшимим данными (для синхронизации)
+     *
      * @param Builder $builder
      * @param int $days
      */
     public function scopeExpired(Builder $builder, int $days = 7)
     {
-        $builder->where(function($builder) use($days) {
-            $builder
-                ->whereNull('synced_at')
-                ->orwhere('synced_at', '<', now()->sub($days)->toDateString());
+        $builder->where(function ($builder) use ($days) {
+            $builder->whereNull('synced_at')->orwhere('synced_at', '<', now()->sub($days)->toDateString());
         });
 
     }
