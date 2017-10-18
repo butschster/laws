@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Court extends Model
@@ -27,5 +28,30 @@ class Court extends Model
     public function jurisdictions()
     {
         return $this->hasMany(CourtJurisdiction::class);
+    }
+
+    /**
+     * Обновление статуса синхронизации
+     *
+     * @return void
+     */
+    public function synced()
+    {
+        $this->synced_at = now();
+        $this->save();
+    }
+
+    /**
+     * @param Builder $builder
+     * @param int $days
+     */
+    public function scopeExpired(Builder $builder, int $days = 7)
+    {
+        $builder->where(function($builder) use($days) {
+            $builder
+                ->whereNull('synced_at')
+                ->orwhere('synced_at', '<', now()->sub($days)->toDateString());
+        });
+
     }
 }

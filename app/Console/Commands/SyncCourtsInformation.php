@@ -49,24 +49,13 @@ class SyncCourtsInformation extends Command
         foreach ([CourtsApi::TYPE_COMMON, CourtsApi::TYPE_MIR] as $type) {
 
             $courts = $this->api->getCourts($type);
-            $this->info("Total courts ".count($courts)." with type [{$type}]");
+            $this->info("Total courts [".count($courts)."] with type [{$type}]");
             foreach ($courts as $court) {
                 $data = $this->getCourt($court['code']);
                 $data = array_merge($data, $court);
                 $data['type'] = $type;
 
-                /** @var Court $court */
-                $court = Court::updateOrCreate(['code' => $data['code']], array_except($data, 'okrug'));
-
-                try {
-                    $jurisdictions = $this->api->getCourtJurisdictionsFromSite($data['url']);
-
-                    if (count($jurisdictions) > 0) {
-                        $court->jurisdictions()->createMany($jurisdictions);
-                    }
-                } catch (\Exception $exception) {
-                    $this->error($exception->getMessage());
-                }
+                Court::updateOrCreate(['code' => $data['code']], array_except($data, 'okrug'));
             }
         }
     }

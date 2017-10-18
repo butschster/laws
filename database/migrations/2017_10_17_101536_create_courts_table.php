@@ -29,6 +29,8 @@ class CreateCourtsTable extends Migration
 
             $table->string('lon', 20);
             $table->string('lat', 20);
+
+            $table->date('synced_at')->nullable();
         });
     }
 
