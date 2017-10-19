@@ -20,12 +20,11 @@ namespace App{
  * @property string|null $url
  * @property string|null $phone
  * @property array $email
- * @property string $region
+ * @property \App\CourtRegion $region
  * @property string $address
  * @property string $code
  * @property string $lon
  * @property string $lat
- * @property string|null $synced_at
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\CourtJurisdiction[] $jurisdictions
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Court expired($days = 7)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Court whereAddress($value)
@@ -38,7 +37,6 @@ namespace App{
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Court whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Court wherePhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Court whereRegion($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Court whereSyncedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Court whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Court whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Court whereUrl($value)
@@ -64,6 +62,15 @@ namespace App{
  * @method static \Illuminate\Database\Eloquent\Builder|\App\CourtJurisdiction whereUpdatedAt($value)
  */
 	class CourtJurisdiction extends \Eloquent {}
+}
+
+namespace App{
+/**
+ * App\CourtRegion
+ *
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Court[] $courts
+ */
+	class CourtRegion extends \Eloquent {}
 }
 
 namespace App{

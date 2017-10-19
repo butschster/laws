@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Court;
 use App\CourtRegion;
 use App\Exceptions\CourtInformationNotFound;
+use App\Jobs\GetInformationAboutCourt;
 use App\Services\Crawler\CourtsApi;
 use Illuminate\Console\Command;
 use Psr\Log\LoggerInterface;
@@ -68,39 +69,16 @@ class SyncCourtsInformation extends Command
             $bar = $this->output->createProgressBar($totalCourts);
 
             foreach ($courts as $court) {
-                try {
-                    $data = $this->api->getCourt($court['code']);
-                } catch (CourtInformationNotFound $e) {
-                    $this->logger->error($e->getMessage());
-                    continue;
-                }
+                $court['type'] = $type;
 
-                $data = array_merge($data, $court);
-                $data['type'] = $type;
-
-                $region = ['name' => $data['region']];
-                $region = CourtRegion::updateOrCreate($region, $region);
-                $data['region_id'] = $region->id;
-
-                Court::updateOrCreate(['code' => $data['code']],
-                    array_except($data, ['okrug', 'region'])
-                );
+                dispatch(new GetInformationAboutCourt($court));
 
                 $bar->advance();
             }
 
             $bar->finish();
             $this->output->writeln('');
-        }
-    }
 
-    /**
-     * @param string $code
-     *
-     * @return array
-     */
-    protected function getCourt(string $code)
-    {
-        return ;
+        }
     }
 }

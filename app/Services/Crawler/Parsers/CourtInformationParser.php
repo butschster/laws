@@ -28,7 +28,6 @@ class CourtInformationParser extends Parser
         $data = [
             'region' => $crawler->filter('body > div.sud_ter_name')->first()->text(),
             'name' => $crawler->filter('body > div.sud_name')->first()->text(),
-            'okrug' => $crawler->filter('body > div.sud_okrug_name')->first()->text(),
             'code' => array_get($code, 'code'),
             'phone' => array_get($phone, 'phone'),
             'email' => [],
