@@ -2,9 +2,13 @@
 
 namespace App\Services\Crawler;
 
+use App\Court;
 use App\Exceptions\CourtInformationNotFound;
+use App\Exceptions\CourtJurisdictionsNotFound;
 use App\Services\Crawler\Parsers\CourtInformationParser;
 use App\Services\Crawler\Parsers\CourtJurisdictionsParser;
+use Illuminate\Cache\CacheManager;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\CssSelector\CssSelectorConverter;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -19,11 +23,25 @@ class CourtsApi
     private $client;
 
     /**
-     * @param \GuzzleHttp\Client $client
+     * @var LoggerInterface
      */
-    public function __construct(\GuzzleHttp\Client $client)
+    private $logger;
+
+    /**
+     * @var Store
+     */
+    private $cache;
+
+    /**
+     * @param \GuzzleHttp\Client $client
+     * @param LoggerInterface $logger
+     * @param CacheManager $cache
+     */
+    public function __construct(\GuzzleHttp\Client $client, LoggerInterface $logger, CacheManager $cache)
     {
         $this->client = $client;
+        $this->logger = $logger;
+        $this->cache = $cache;
     }
 
     /**
@@ -35,14 +53,12 @@ class CourtsApi
      */
     public function getCourts(string $type): array
     {
-        return cache()->remember('courts:'.$type, now()->addDay(), function () use($type) {
-            $res = $this->client->request('GET', 'https://sudrf.ru/index.php?id=300&act=ya_coords&type_suds='.$type);
-
-            $response = $res->getBody()->getContents();
+        return $this->cache->remember('courts:'.$type, now()->addDay(), function () use($type) {
+            $html = $this->getUrlConentent('https://sudrf.ru/index.php?id=300&act=ya_coords&type_suds='.$type, ['timeout' => 3]);
 
             $matches = [];
 
-            preg_match_all(static::PATTERN, $response, $matches);
+            preg_match_all(static::PATTERN, $html, $matches);
 
             $data = [];
 
@@ -52,7 +68,7 @@ class CourtsApi
                 }
 
                 foreach ($groupRows as $i => $value) {
-                    $data[$i][$group] = $this->convertToUtf8($value);
+                    $data[$i][$group] = $value;
                 }
             }
 
@@ -71,36 +87,39 @@ class CourtsApi
     public function getCourt(string $code): array
     {
         try {
-            $res = $this->client->request('GET', 'https://sudrf.ru/index.php?id=300&act=ya_info&vnkod='.$code);
-        } catch (\GuzzleHttp\Exception\ConnectException $exception) {
-            throw new CourtInformationNotFound($code);
-        } catch (\GuzzleHttp\Exception\ClientException $exception) {
-            throw new CourtInformationNotFound($code);
+            $html = $this->getUrlConentent('https://sudrf.ru/index.php?id=300&act=ya_info&vnkod='.$code, ['timeout' => 3]);
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            throw new CourtInformationNotFound($code, 0, $exception);
         }
 
         try {
             $parser = new CourtInformationParser();
-            return $parser->parse($res->getBody()->getContents());
+            return $parser->parse($html);
         } catch (\Exception $exception) {
-            throw new CourtInformationNotFound($code);
+            throw new CourtInformationNotFound($code, 0, $exception);
         }
     }
 
     /**
-     * @param string $url
+     * @param Court $court
      *
      * @return array
+     * @throws CourtJurisdictionsNotFound
      */
-    public function getCourtJurisdictionsFromSite(string $url): array
+    public function getCourtJurisdictionsFromSite(Court $court): array
     {
-        $html = $this->loadCourtJurisdictionsHTMLFromSite($url);
+        try {
+            $html = $this->loadCourtJurisdictionsHTMLFromSite($court->url);
+        } catch (\GuzzleHttp\Exception\RequestException $exception) {
+            throw new CourtJurisdictionsNotFound($court->code, 0, $exception);
+        }
 
         if (str_contains($html, 'Модуль с таким именем не существует!')) {
-            return [];
+            throw new CourtJurisdictionsNotFound($court->code);
         }
 
         if (str_contains($html, 'В базе данных нет информации о территориальной подсудности.')) {
-            return [];
+            throw new CourtJurisdictionsNotFound($court->code);
         }
 
         $totalPages = $this->getTotalOfPages($html);
@@ -139,9 +158,7 @@ class CourtsApi
      */
     protected function loadCourtJurisdictionsHTMLFromSite(string $url, int $page = 1)
     {
-        $res = $this->client->request('GET', "{$url}/modules.php?name=terr&pagenum={$page}");
-
-        return $this->convertToUtf8($res->getBody()->getContents());
+        return $this->getUrlConentent("http://promyshleny.stv.sudrf.ru/modules.php?name=terr&pagenum={$page}");
     }
 
     /**
@@ -162,5 +179,21 @@ class CourtsApi
         }
 
         return 1;
+    }
+
+    /**
+     * @param string $url
+     *
+     * @return string
+     */
+    protected function getUrlConentent(string $url): string
+    {
+        $this->logger->debug('CourtsApi выполнение запроса', [
+            'url' => $url
+        ]);
+
+        $res = $this->client->get($url, ['timeout' => 5]);
+
+        return $this->convertToUtf8($res->getBody()->getContents());
     }
 }

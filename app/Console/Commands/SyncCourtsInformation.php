@@ -64,7 +64,7 @@ class SyncCourtsInformation extends Command
             $courts = $this->api->getCourts($type);
             $totalCourts = count($courts);
 
-            $this->info("Total courts [{$totalCourts}] with type [{$type}]");
+            $this->info("Всего судов [{$totalCourts}] с типом [{$type}]");
 
             $bar = $this->output->createProgressBar($totalCourts);
 

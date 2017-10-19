@@ -52,13 +52,13 @@ class UpdateRefinancingRate extends Command
      */
     public function handle()
     {
-        $this->info('Getting refinancing rate');
+        $this->info('Получение ставки рефинансирования с сайта ЦБ.');
 
         try {
             $rate = $this->rate->get();
-            $this->info('Current rate: ['.$rate.']');
+            $this->info('Текущая ставка: ['.$rate.']');
         } catch (\SoapFault $exception) {
-            $this->error('Getting refinancing rate error. Reason: '. $exception->getMessage());
+            $this->error('Загрузка данных произошла с ошибкой. Причина: '. $exception->getMessage());
         }
     }
 }

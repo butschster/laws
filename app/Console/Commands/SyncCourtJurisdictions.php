@@ -3,9 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Court;
-use App\CourtJurisdiction;
-use App\Services\Crawler\CourtsApi;
-use DB;
+use App\Jobs\GetInformationAboutCourtJurisdictions;
 use Illuminate\Console\Command;
 
 class SyncCourtJurisdictions extends Command
@@ -25,51 +23,28 @@ class SyncCourtJurisdictions extends Command
     protected $description = 'Обновление информации о подсудности судов';
 
     /**
-     * @var CourtsApi
-     */
-    private $api;
-
-    /**
-     * SyncCourtsInformation constructor.
-     *
-     * @param CourtsApi $api
-     */
-    public function __construct(CourtsApi $api)
-    {
-        parent::__construct();
-
-        $this->api = $api;
-    }
-
-    /**
      * Execute the console command.
      *
      * @return mixed
      */
     public function handle()
     {
-        /** @var Court $court */
-        $courts = Court::expired()->take(1000)->get()->each(function(Court $court) {
-            $this->syncJurisdictions($court);
-        });
+        $totalCourts = Court::count();
+        $batchSize = 500;
+        $skip = 0;
 
-        $this->info("Total courts to sync jurisdictions [".count($courts)."]");
-    }
+        $this->info("Всего судов для синхронизации [".$totalCourts."]");
 
-    /**
-     * @param Court $court
-     */
-    protected function syncJurisdictions(Court $court)
-    {
-        try {
-            $jurisdictions = $this->api->getCourtJurisdictionsFromSite($court->url);
+        while ($totalCourts > 0) {
+            /** @var Court $court */
+            Court::expired()->take($batchSize)->skip($batchSize)->get()->each(function(Court $court) {
+                dispatch(new GetInformationAboutCourtJurisdictions($court));
+            });
 
-            $this->info("Total $jurisdictions [".count($jurisdictions)."] for court [{$court->name}]");
-            if (count($jurisdictions) > 0) {
-                $court->jurisdictions()->createMany($jurisdictions);
-            }
-        } catch (\Exception $exception) {
-            $this->error($exception->getMessage());
+            $skip += $batchSize;
+            $totalCourts -= $batchSize;
+
+            $this->info("Судов осталось синхронизировать [".$totalCourts."]");
         }
     }
 }

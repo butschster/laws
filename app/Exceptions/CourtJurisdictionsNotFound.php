@@ -3,9 +3,8 @@
 namespace App\Exceptions;
 
 use Exception;
-use Throwable;
 
-class CourtInformationNotFound extends Exception
+class CourtJurisdictionsNotFound extends Exception
 {
 
     /**
@@ -15,6 +14,6 @@ class CourtInformationNotFound extends Exception
      */
     public function __construct(string $courtCode, $code = 0, \Throwable $previous = null)
     {
-        parent::__construct("Суд с кодом [{$courtCode}] не найден.", $code, $previous);
+        parent::__construct("Подсудности для суда с кодом [{$courtCode}] не найдены.", $code, $previous);
     }
 }

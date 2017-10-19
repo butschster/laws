@@ -78,7 +78,7 @@ class Court extends Model
     public function scopeExpired(Builder $builder, int $days = 7)
     {
         $builder->where(function ($builder) use ($days) {
-            $builder->whereNull('synced_at')->orwhere('synced_at', '<', now()->sub($days)->toDateString());
+            $builder->whereNull('synced_at')->orwhere('synced_at', '<', now()->subDays($days)->toDateString());
         });
 
     }
