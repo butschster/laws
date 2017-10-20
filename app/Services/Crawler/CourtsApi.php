@@ -192,7 +192,12 @@ class CourtsApi
             'url' => $url
         ]);
 
-        $res = $this->client->get($url, ['timeout' => 5]);
+        $res = $this->client->get($url, [
+            'timeout' => 5,
+            'headers' => [
+                'User-Agent' => \Campo\UserAgent::random()
+            ]
+        ]);
 
         return $this->convertToUtf8($res->getBody()->getContents());
     }
