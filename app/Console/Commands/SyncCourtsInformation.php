@@ -60,25 +60,33 @@ class SyncCourtsInformation extends Command
         $types = array_keys(Court::types());
 
         foreach ($types as $type) {
-
-            $courts = $this->api->getCourts($type);
-            $totalCourts = count($courts);
-
-            $this->info("Всего судов [{$totalCourts}] с типом [{$type}]");
-
-            $bar = $this->output->createProgressBar($totalCourts);
-
-            foreach ($courts as $court) {
-                $court['type'] = $type;
-
-                dispatch(new GetInformationAboutCourt($court));
-
-                $bar->advance();
-            }
-
-            $bar->finish();
-            $this->output->writeln('');
-
+            $this->syncCourts($type);
         }
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return int
+     */
+    protected function syncCourts(string $type)
+    {
+        $courts = $this->api->getCourts($type);
+        $totalCourts = count($courts);
+
+        $this->info("Всего судов [{$totalCourts}] с типом [{$type}]");
+
+        $bar = $this->output->createProgressBar($totalCourts);
+
+        foreach ($courts as $court) {
+            $court['type'] = $type;
+
+            dispatch(new GetInformationAboutCourt($court));
+
+            $bar->advance();
+        }
+
+        $bar->finish();
+        $this->output->writeln('');
     }
 }

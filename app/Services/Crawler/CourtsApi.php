@@ -28,7 +28,7 @@ class CourtsApi
     private $logger;
 
     /**
-     * @var Store
+     * @var CacheManager
      */
     private $cache;
 
@@ -54,7 +54,7 @@ class CourtsApi
     public function getCourts(string $type): array
     {
         return $this->cache->remember('courts:'.$type, now()->addDay(), function () use($type) {
-            $html = $this->getUrlConentent('https://sudrf.ru/index.php?id=300&act=ya_coords&type_suds='.$type, ['timeout' => 3]);
+            $html = $this->query('https://sudrf.ru/index.php?id=300&act=ya_coords&type_suds='.$type);
 
             $matches = [];
 
@@ -87,13 +87,13 @@ class CourtsApi
     public function getCourt(string $code): array
     {
         try {
-            $html = $this->getUrlConentent('https://sudrf.ru/index.php?id=300&act=ya_info&vnkod='.$code, ['timeout' => 3]);
+            $html = $this->query('https://sudrf.ru/index.php?id=300&act=ya_info&vnkod='.$code);
         } catch (\GuzzleHttp\Exception\RequestException $exception) {
             throw new CourtInformationNotFound($code, 0, $exception);
         }
 
         try {
-            $parser = new CourtInformationParser();
+            $parser = app()->make(CourtInformationParser::class);
             return $parser->parse($html);
         } catch (\Exception $exception) {
             throw new CourtInformationNotFound($code, 0, $exception);
@@ -124,7 +124,7 @@ class CourtsApi
 
         $totalPages = $this->getTotalOfPages($html);
 
-        $parser = new CourtJurisdictionsParser();
+        $parser = app()->make(CourtJurisdictionsParser::class);
 
         $jurisdictions = $parser->parse($html);
 
@@ -158,7 +158,9 @@ class CourtsApi
      */
     protected function loadCourtJurisdictionsHTMLFromSite(string $url, int $page = 1)
     {
-        return $this->getUrlConentent("http://promyshleny.stv.sudrf.ru/modules.php?name=terr&pagenum={$page}");
+        $url = rtrim($url, '/');
+
+        return $this->query("{$url}/modules.php?name=terr&pagenum={$page}");
     }
 
     /**
@@ -186,7 +188,7 @@ class CourtsApi
      *
      * @return string
      */
-    protected function getUrlConentent(string $url): string
+    protected function query(string $url): string
     {
         $this->logger->debug('CourtsApi выполнение запроса', [
             'url' => $url

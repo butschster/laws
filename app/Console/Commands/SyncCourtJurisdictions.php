@@ -37,7 +37,7 @@ class SyncCourtJurisdictions extends Command
 
         while ($totalCourts > 0) {
             /** @var Court $court */
-            Court::expired()->take($batchSize)->skip($batchSize)->get()->each(function(Court $court) {
+            Court::expired()->take($batchSize)->skip($skip)->get()->each(function(Court $court) {
                 dispatch(new GetInformationAboutCourtJurisdictions($court));
             });
 

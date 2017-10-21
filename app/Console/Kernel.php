@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use App\Console\Commands\ImportFiasDatabase;
+use App\Console\Commands\IndexFiasDatabase;
 use App\Console\Commands\SyncCourtJurisdictions;
 use App\Console\Commands\SyncCourtsInformation;
 use App\Console\Commands\UpdateRefinancingRate;
@@ -20,6 +22,8 @@ class Kernel extends ConsoleKernel
         SyncCourtsInformation::class,
         UpdateRefinancingRate::class,
         SyncCourtJurisdictions::class,
+        ImportFiasDatabase::class,
+        IndexFiasDatabase::class
     ];
 
     /**

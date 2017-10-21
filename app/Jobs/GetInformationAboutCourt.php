@@ -34,6 +34,9 @@ class GetInformationAboutCourt implements ShouldQueue
     /**
      * Execute the job.
      *
+     * @param CourtsApi $api
+     * @param LoggerInterface $logger
+     *
      * @return void
      */
     public function handle(CourtsApi $api, LoggerInterface $logger)
