@@ -25,15 +25,22 @@ class User implements UserInterface, ElementInterface
     private $phone;
 
     /**
+     * @var string
+     */
+    private $corespondAddress;
+
+    /**
      * @param string $name
      * @param string $address
      * @param string $phone
+     * @param string|null $corespondAddress
      */
-    public function __construct(string $name, string $address, string $phone)
+    public function __construct(string $name, string $address, string $phone = null, string $corespondAddress = null)
     {
         $this->name = $name;
         $this->address = $address;
         $this->phone = $phone;
+        $this->corespondAddress = $corespondAddress;
     }
 
     /**
@@ -91,11 +98,25 @@ class User implements UserInterface, ElementInterface
      */
     public function __toString()
     {
+        $text = '%s, место жительства: %s';
+        $phone = $this->phone();
+        if ( !empty($phone)) {
+            $text .= ', контактный телефон: %s';
+        }
+
+        $corespondAddress = $this->corespondAddress;
+        if ( !empty($corespondAddress)) {
+            $text .= ', адрес для корреспонденции: %s';
+        }
+
+        $text .= '.';
+
         return sprintf(
-            '%s, место жительства: %s, контактный телефон: %s.',
+            $text,
             $this->fullName(),
             $this->address(),
-            $this->phone()
+            $phone,
+            $corespondAddress
         );
     }
 }

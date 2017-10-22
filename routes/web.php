@@ -25,7 +25,8 @@ Route::get('document', function (\PhpOffice\PhpWord\PhpWord $phpWord) {
             $plaintiff = new \App\Law\Plaintiff(
                 'Вася Пупкин',
                 '112233, г. Москва, ул. Ленинский проспект, д.12, кв.3',
-                '+7 926 123-45-67'
+                '+7 926 123-45-67',
+                '778899, Москва, Кривоколенный переулок, дом 2, Бизнес Центр «Володя», ООО «Димон» (для Иванова И.И.).'
             ),
             new \App\Law\Respondent(
                 'Дуня Кулачкова',
@@ -50,7 +51,8 @@ Route::get('document', function (\PhpOffice\PhpWord\PhpWord $phpWord) {
         new \App\Documents\Elements\SimplePlaintText(
             now(),
             now()->addYear(),
-            $claim
+            $claim,
+            new \App\Law\ReturnedClaimAmount(5500)
         )
     );
 
@@ -63,3 +65,14 @@ Route::get('document', function (\PhpOffice\PhpWord\PhpWord $phpWord) {
         $document->save('test.docx')
     );
 });
+
+Route::get('kladr', function (\App\Services\Kladr\Client $client, \App\Services\Fias\Service $service) {
+
+    $kladr =  $client->findByAddress('ст. Преображенская, ул. Ленина');
+
+    dd($kladr->toArray(), $service->searchByCode($kladr->first()->id()));
+
+});
+Auth::routes();
+
+Route::get('/home', 'HomeController@index')->name('home');

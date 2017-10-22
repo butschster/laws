@@ -5,6 +5,11 @@ namespace App\Documents\Elements;
 use App\Contracts\Documents\ElementInterface;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
+/**
+ * Ненумерованный список
+ *
+ * @package App\Documents\Elements
+ */
 class BulletList implements ElementInterface
 {
 
@@ -24,8 +29,9 @@ class BulletList implements ElementInterface
     protected $style;
 
     /**
-     * @param array $elements
-     * @param int $depth
+     * @param array $elements Массив элементов
+     * @param int $depth Начальная глубина
+     * @param int $style Стиль
      */
     public function __construct(array $elements, int $depth = 0, int $style = \PhpOffice\PhpWord\Style\ListItem::TYPE_BULLET_FILLED)
     {

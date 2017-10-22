@@ -6,6 +6,11 @@ use App\Contracts\Documents\ElementInterface;
 use App\Law\User;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
+/**
+ * Подпись
+ *
+ * @package App\Documents\Elements
+ */
 class UserSign implements ElementInterface
 {
 
@@ -29,15 +34,12 @@ class UserSign implements ElementInterface
      */
     public function insertTo(AbstractContainer $container)
     {
-        $container->addText(now()->format('d G Y г.'), null, [
-            'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::END,
-        ]);
+        $container->addText(now()->format('«d» F Y г.'));
+
         $container->addText(sprintf(
-            '%s _________________ %s',
+            '%s _______________________________ %s',
             $this->user->title(),
             $this->user->shortName()
-        ), null, [
-            'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::END,
-        ]);
+        ), ['bold' => true]);
     }
 }

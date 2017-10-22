@@ -11,40 +11,55 @@ use App\Law\Respondent;
 use App\Law\Tax;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
+/**
+ * Шапка документа
+ *
+ * @package App\Documents\Elements
+ */
 class Header implements ElementInterface
 {
 
     /**
+     * Обхект суда
+     *
      * @var \App\Law\Court
      */
     private $court;
 
     /**
+     * Объект истца
+     *
      * @var Plaintiff
      */
     private $plaintiff;
 
     /**
+     * Объект ответчика
+     *
      * @var Respondent
      */
     private $respondent;
 
     /**
+     * Сумма заёма
+     *
      * @var Amount
      */
     private $cost;
 
     /**
+     * Размер госпошлины
+     *
      * @var Tax
      */
     private $tax;
 
     /**
-     * @param Court $court
-     * @param Plaintiff $plaintiff
-     * @param Respondent $respondent
-     * @param ClaimAmount $cost
-     * @param Tax $tax
+     * @param Court $court Суд
+     * @param Plaintiff $plaintiff Истец
+     * @param Respondent $respondent Ответчик
+     * @param ClaimAmount $cost Сумма заёма
+     * @param Tax $tax Размер госпошлины
      */
     public function __construct(Court $court, Plaintiff $plaintiff, Respondent $respondent, ClaimAmount $cost, Tax $tax)
     {

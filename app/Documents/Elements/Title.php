@@ -5,6 +5,11 @@ namespace App\Documents\Elements;
 use App\Contracts\Documents\ElementInterface;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
+/**
+ * Заголовок
+ *
+ * @package App\Documents\Elements
+ */
 class Title implements ElementInterface
 {
 
@@ -19,8 +24,8 @@ class Title implements ElementInterface
     private $subtitle;
 
     /**
-     * @param string $title
-     * @param string $subtitle
+     * @param string $title Заколовок
+     * @param string $subtitle Подзаголовок
      */
     public function __construct(string $title, string $subtitle = null)
     {
