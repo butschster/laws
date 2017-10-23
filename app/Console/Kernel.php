@@ -19,11 +19,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        SyncCourtsInformation::class,
-        UpdateRefinancingRate::class,
-        SyncCourtJurisdictions::class,
-        ImportFiasDatabase::class,
-        IndexFiasDatabase::class
+        //
     ];
 
     /**

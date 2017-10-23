@@ -10,8 +10,12 @@ window._ = require('lodash');
 try {
     window.$ = window.jQuery = require('jquery');
 
-    require('bootstrap-sass');
-} catch (e) {}
+    require('bootstrap');
+    require('./unify');
+
+} catch (e) {
+    console.error('jQuery components not inited!', e)
+}
 
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
@@ -45,9 +49,7 @@ if (token) {
 
 // import Echo from 'laravel-echo'
 
-// window.Pusher = require('pusher-js');
-
 // window.Echo = new Echo({
-//     broadcaster: 'pusher',
-//     key: 'your-pusher-key'
+//     broadcaster: 'socket.io',
+//     host: window.settings.config.websocket.host
 // });
