@@ -15,11 +15,7 @@
 </head>
 <body>
     <main id="app">
-        @include('components.header')
-
         @yield('content')
-
-        @include('components.footer')
     </main>
 
     <!-- Scripts -->

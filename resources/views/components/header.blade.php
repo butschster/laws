@@ -1,4 +1,4 @@
-<header id="js-header" class="u-header u-header--sticky-top u-header--toggle-section u-header--change-appearance" data-header-fix-moment="300">
+<header id="js-header" class="u-header u-header--toggle-section" data-header-fix-moment="300">
     <div class="u-header__section u-header__section--light g-bg-white g-transition-0_3 g-py-10" data-header-fix-moment-exclude="g-py-10" data-header-fix-moment-classes="u-shadow-v18 g-py-0">
 
         <nav class="navbar navbar-expand-lg">

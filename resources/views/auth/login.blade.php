@@ -1,69 +1,86 @@
-@extends('layouts.app')
+@extends('layouts.clean')
 
 @section('content')
-<div class="container">
-    <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-            <div class="panel panel-default">
-                <div class="panel-heading">Login</div>
+    <!-- Login -->
+    <section class="g-min-height-100vh g-flex-centered g-bg-lightblue-radialgradient-circle">
 
-                <div class="panel-body">
-                    <form class="form-horizontal" method="POST" action="{{ route('login') }}">
-                        {{ csrf_field() }}
+        <div class="container g-pt-100 g-pb-20">
+            <div class="row justify-content-between">
+                <div class="col-md-6 col-lg-5 flex-md-unordered align-self-center g-mb-80">
+                    <div class="u-shadow-v21 g-bg-white rounded g-pa-50">
+                        <header class="text-center mb-4">
+                            <h2 class="h2 g-color-black g-font-weight-600">Авторизация</h2>
+                        </header>
 
-                        <div class="form-group{{ $errors->has('email') ? ' has-error' : '' }}">
-                            <label for="email" class="col-md-4 control-label">E-Mail Address</label>
+                        <!-- Form -->
+                        <form class="g-py-15" method="POST" action="{{ route('login') }}">
+                            {{ csrf_field() }}
 
-                            <div class="col-md-6">
-                                <input id="email" type="email" class="form-control" name="email" value="{{ old('email') }}" required autofocus>
+                            <div class="mb-4 form-group{{ $errors->has('email') ? ' u-has-error-v1' : '' }}">
+                                <div class="input-group">
+                                    <span class="input-group-addon g-width-45 ">
+                                        <i class="icon-user"></i>
+                                    </span>
+
+                                    <input class="form-control g-py-15 g-px-15" type="email" name="email" value="{{ old('email') }}" placeholder="E-mail" autofocus>
+                                </div>
 
                                 @if ($errors->has('email'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('email') }}</strong>
-                                    </span>
+                                <span class="form-control-feedback">
+                                    <strong>{{ $errors->first('email') }}</strong>
+                                </span>
                                 @endif
                             </div>
-                        </div>
 
-                        <div class="form-group{{ $errors->has('password') ? ' has-error' : '' }}">
-                            <label for="password" class="col-md-4 control-label">Password</label>
+                            <div class="g-mb-30{{ $errors->has('password') ? ' u-has-error-v1' : '' }}">
+                                <div class="input-group">
+                                    <span class="input-group-addon g-width-45">
+                                        <i class="icon-lock"></i>
+                                    </span>
 
-                            <div class="col-md-6">
-                                <input id="password" type="password" class="form-control" name="password" required>
-
+                                    <input class="form-control g-py-15 g-px-15" type="password" placeholder="Password" name="password">
+                                </div>
                                 @if ($errors->has('password'))
-                                    <span class="help-block">
-                                        <strong>{{ $errors->first('password') }}</strong>
-                                    </span>
+                                <span class="form-control-feedback">
+                                    <strong>{{ $errors->first('password') }}</strong>
+                                </span>
                                 @endif
-                            </div>
-                        </div>
 
-                        <div class="form-group">
-                            <div class="col-md-6 col-md-offset-4">
-                                <div class="checkbox">
-                                    <label>
-                                        <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}> Remember Me
-                                    </label>
+                                <div class="row justify-content-between mt-4">
+                                    <div class="col align-self-center">
+                                        <label class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" name="remember" {{ old('remember') ? 'checked' : '' }}>
+                                            <span class="custom-control-indicator"></span>
+                                            <span class="custom-control-description">Запомнить меня</span>
+                                        </label>
+                                    </div>
+                                    <div class="col align-self-center text-right">
+                                        <a class="g-font-size-12" href="{{ route('password.request') }}">Забыли пароль?
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="form-group">
-                            <div class="col-md-8 col-md-offset-4">
-                                <button type="submit" class="btn btn-primary">
-                                    Login
-                                </button>
-
-                                <a class="btn btn-link" href="{{ route('password.request') }}">
-                                    Forgot Your Password?
-                                </a>
+                            <div class="text-center mb-5">
+                                <button class="btn btn-block u-btn-primary rounded g-py-13" type="submit">Войти</button>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                        <!-- End Form -->
+
+                        <footer class="text-center">
+                            <p class="g-color-gray-dark-v5 mb-0">
+                                У вас нет аккаунта?
+                                <a class="g-font-weight-600" href="{{ route('register') }}">Регистрация</a>
+                            </p>
+                        </footer>
+                    </div>
+                </div>
+
+                <div class="col-md-6 flex-md-first align-self-center g-mb-80">
+                    @include('auth.components.login-text')
                 </div>
             </div>
         </div>
-    </div>
-</div>
+
+    </section>
+    <!-- End Login -->
 @endsection

@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "bootstrap": "^4.0.0-beta.2",
-    "popper.js": "^1.12.6"
+    "popper.js": "^1.12.6",
+    "simple-line-icons": "^2.4.1"
   }
 }
