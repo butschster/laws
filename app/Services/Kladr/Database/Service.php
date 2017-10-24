@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Fias;
+namespace App\Services\Kladr\Database;
 
 use Illuminate\Database\DatabaseManager;
 
@@ -8,7 +8,7 @@ class Service
 {
     const LEVEL_STREET = 7;
 
-    const DB_CONNECTION = 'fias';
+    const DB_CONNECTION = 'mysql';
 
     /**
      * @var \Illuminate\Database\Connection

@@ -2,20 +2,22 @@
 
 namespace App\Rules;
 
-use App\Services\Kladr\Client;
+use App\Services\Dadata\ClientInterface;
 use Illuminate\Contracts\Validation\Rule;
 
 class Address implements Rule
 {
     /**
-     * @var Client
+     * @var ClientInterface
      */
     private $client;
 
     /**
-     * @param Client $client
+     * Address constructor.
+     *
+     * @param ClientInterface $client
      */
-    public function __construct(Client $client)
+    public function __construct(ClientInterface $client)
     {
         $this->client = $client;
     }
@@ -29,7 +31,7 @@ class Address implements Rule
      */
     public function passes($attribute, $value)
     {
-        $response = $this->client->findByAddress($value);
+        $response = $this->client->suggest($value);
 
         return $response->count() > 0;
     }

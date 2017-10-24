@@ -2,17 +2,17 @@
 
 namespace App\Console\Commands;
 
-use App\Services\Fias\Indexer;
+use App\Services\Kladr\Database\Indexer;
 use Illuminate\Console\Command;
 
-class IndexFiasDatabase extends Command
+class IndexKladrDatabase extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'fias:index';
+    protected $signature = 'kladr:index';
 
     /**
      * The console command description.

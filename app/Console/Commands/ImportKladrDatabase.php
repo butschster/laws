@@ -2,19 +2,19 @@
 
 namespace App\Console\Commands;
 
-use App\Services\Fias\Importer;
+use App\Services\Kladr\Database\Importer;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Symfony\Component\Finder\SplFileInfo;
 
-class ImportFiasDatabase extends Command
+class ImportKladrDatabase extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'fias:import';
+    protected $signature = 'kladr:import';
 
     /**
      * The console command description.

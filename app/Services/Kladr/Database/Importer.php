@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Fias;
+namespace App\Services\Kladr\Database;
 
 use Carbon\Carbon;
 use Illuminate\Database\DatabaseManager;
@@ -42,6 +42,12 @@ class Importer
             return;
         }
 
+        if ( !str_contains($table, 'KLADR')) {
+            $table = 'kladr_'.strtolower($table);
+        } else {
+            $table = strtolower($table);
+        }
+
         $database = new Table($file->getPathname());
 
         $batch = 0;
@@ -65,7 +71,8 @@ class Importer
                         $value = intval($value);
                         break;
                     default:
-                        $value = $value ? trim(iconv('cp866', 'utf-8', $value)) : '';
+                        $value = $value ? trim(iconv('cp866', 'utf-8', $value)) : null;
+
                         break;
                 }
                 return [$key => $value];

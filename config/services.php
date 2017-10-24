@@ -35,4 +35,8 @@ return [
         'secret' => env('STRIPE_SECRET'),
     ],
 
+    'dadata' => [
+        'token' => env('DADATA_TOKEN')
+    ]
+
 ];

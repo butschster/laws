@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Fias;
+namespace App\Services\Kladr\Database;
 
 use Illuminate\Database\DatabaseManager;
 use Illuminate\Support\Collection;
