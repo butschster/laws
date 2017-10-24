@@ -1,15 +1,28 @@
 <?php
 
+use Carbon\Carbon;
+
 /**
  * Приведение даты к единому формату
  *
- * @param \Carbon\Carbon $date
+ * @param Carbon $date
  *
  * @return string
  */
-function format_date(\Carbon\Carbon $date): string
+function format_date(Carbon $date): string
 {
     return $date->format('d.m.Y г.');
+}
+
+/**
+ * @param string $date
+ * @param string $format
+ *
+ * @return Carbon
+ */
+function custom_date(string $date, string $format = 'd.m.Y'): Carbon
+{
+    return Carbon::createFromFormat($format, $date);
 }
 
 /**
@@ -23,3 +36,4 @@ function modules_path(string $path = ''): string
 {
     return app(App\Contracts\Modules\ManagerInterface::class)->basePath().($path ? DIRECTORY_SEPARATOR.$path : $path);
 }
+

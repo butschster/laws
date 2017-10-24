@@ -8,6 +8,20 @@ use PhpOffice\PhpWord\Element\AbstractContainer;
 
 class User implements UserInterface, ElementInterface
 {
+    /**
+     * @param array $data
+     *
+     * @return static
+     */
+    public static function fromArray(array $data)
+    {
+        return new static(
+            array_get($data, 'name'),
+            array_get($data, 'address'),
+            array_get($data, 'phone'),
+            array_get($data, 'fact_address')
+        );
+    }
 
     /**
      * @var string
@@ -27,20 +41,20 @@ class User implements UserInterface, ElementInterface
     /**
      * @var string
      */
-    private $corespondAddress;
+    private $factAddress;
 
     /**
      * @param string $name
      * @param string $address
      * @param string $phone
-     * @param string|null $corespondAddress
+     * @param string|null $factAddress
      */
-    public function __construct(string $name, string $address, string $phone = null, string $corespondAddress = null)
+    public function __construct(string $name, string $address, string $phone = null, string $factAddress = null)
     {
         $this->name = $name;
         $this->address = $address;
         $this->phone = $phone;
-        $this->corespondAddress = $corespondAddress;
+        $this->factAddress = $factAddress;
     }
 
     /**
@@ -104,8 +118,8 @@ class User implements UserInterface, ElementInterface
             $text .= ', контактный телефон: %s';
         }
 
-        $corespondAddress = $this->corespondAddress;
-        if ( !empty($corespondAddress)) {
+        $factAddress = $this->factAddress;
+        if ( !empty($factAddress)) {
             $text .= ', адрес для корреспонденции: %s';
         }
 
@@ -116,7 +130,7 @@ class User implements UserInterface, ElementInterface
             $this->fullName(),
             $this->address(),
             $phone,
-            $corespondAddress
+            $factAddress
         );
     }
 }

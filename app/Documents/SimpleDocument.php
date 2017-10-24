@@ -57,7 +57,7 @@ class SimpleDocument implements DocumentInterface
 
         $objWriter->save($path = storage_path(implode(DIRECTORY_SEPARATOR, $path)));
 
-        return $path;
+        return implode(['storage', 'documents', $filename], '/');
     }
 
     /**

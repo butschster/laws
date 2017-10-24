@@ -34,15 +34,17 @@ class Street implements Arrayable
     {
         $this->data = $data;
 
-        $this->city = new City(array_first(array_get($this->data, 'parents'), function (array $parent) {
+        $parents = array_get($this->data, 'parents', []);
+
+        $this->city = new City(array_first($parents, function (array $parent) {
             return array_get($parent, 'contentType') == ObjectType::CITY;
         }, []));
 
-        $this->region = new Region(array_first(array_get($this->data, 'parents'), function (array $parent) {
+        $this->region = new Region(array_first($parents, function (array $parent) {
             return array_get($parent, 'contentType') == ObjectType::REGION;
         }, []));
 
-        $this->district = new District(array_first(array_get($this->data, 'parents'), function (array $parent) {
+        $this->district = new District(array_first($parents, function (array $parent) {
             return array_get($parent, 'contentType') == ObjectType::DISTRICT;
         }, []));
     }

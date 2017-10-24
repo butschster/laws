@@ -73,9 +73,11 @@ class Client
 
         $array = json_decode($response, true);
 
-        return collect($array['result'])->map(function ($street) {
-            return new Street($street);
-        });
+        return collect($array['result'])
+            ->where('contentType', 'street')
+            ->map(function ($street) {
+                return new Street($street);
+            });
     }
 
     /**

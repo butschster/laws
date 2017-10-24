@@ -33,7 +33,7 @@ try {
  */
 
 window.axios = require('axios');
-window.routes = require('./routes');
+window.router = require('./routes');
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
