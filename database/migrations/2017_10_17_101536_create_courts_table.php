@@ -32,7 +32,10 @@ class CreateCourtsTable extends Migration
 
             $table->date('synced_at')->nullable();
 
-            $table->foreign('region_id')->references('id')->on('court_regions')->onDelete('cascade');
+            $table->foreign('region_id')
+                ->references('id')
+                ->on('regions')
+                ->onDelete('cascade');
         });
     }
 

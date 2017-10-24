@@ -190,10 +190,6 @@ class CourtsApi
      */
     protected function query(string $url): string
     {
-        $this->logger->debug('CourtsApi выполнение запроса', [
-            'url' => $url
-        ]);
-
         $res = $this->client->get($url, [
             'timeout' => 5,
             'headers' => [

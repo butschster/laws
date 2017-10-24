@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateCourtRegionsTable extends Migration
+class AddFederalDistrctToRegionTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,12 @@ class CreateCourtRegionsTable extends Migration
      */
     public function up()
     {
-        Schema::create('court_regions', function (Blueprint $table) {
-            $table->increments('id');
-            $table->timestamps();
-            $table->string('name');
+        Schema::table('regions', function (Blueprint $table) {
+            $table->unsignedInteger('federal_district_id')->index();
+            $table->foreign('federal_district_id')
+                ->references('id')
+                ->on('federal_districts')
+                ->onDelete('cascade');
         });
     }
 
@@ -27,6 +29,6 @@ class CreateCourtRegionsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('court_regions');
+        //
     }
 }

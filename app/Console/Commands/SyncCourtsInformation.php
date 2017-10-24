@@ -3,8 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Court;
-use App\CourtRegion;
-use App\Exceptions\CourtInformationNotFound;
 use App\Jobs\GetInformationAboutCourt;
 use App\Services\Crawler\CourtsApi;
 use Illuminate\Console\Command;

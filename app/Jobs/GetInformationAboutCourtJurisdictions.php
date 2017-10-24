@@ -51,6 +51,7 @@ class GetInformationAboutCourtJurisdictions implements ShouldQueue
         } catch (CourtJurisdictionsNotFound $exception) {
             $logger->error($exception->getMessage());
 
+            $this->fail($exception);
             return;
         }
 

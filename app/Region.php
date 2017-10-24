@@ -4,13 +4,13 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CourtRegion extends Model
+class Region extends Model
 {
 
     /**
      * @var array
      */
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'federal_district_id'];
 
     /**
      * Получение списка судов
@@ -20,5 +20,13 @@ class CourtRegion extends Model
     public function courts()
     {
         return $this->hasMany(Court::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function federalDistrict()
+    {
+        return $this->belongsTo(FederalDistrict::class);
     }
 }

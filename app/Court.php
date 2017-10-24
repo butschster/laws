@@ -55,7 +55,7 @@ class Court extends Model
      */
     public function region()
     {
-        return $this->belongsTo(CourtRegion::class);
+        return $this->belongsTo(Region::class);
     }
 
     /**

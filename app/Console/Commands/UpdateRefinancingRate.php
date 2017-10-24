@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Exceptions\RefinancingRateResponse;
 use App\Services\CBR\RefinancingRate;
 use Illuminate\Console\Command;
 use Psr\Log\LoggerInterface;
@@ -56,9 +57,19 @@ class UpdateRefinancingRate extends Command
 
         try {
             $rate = $this->rate->get();
-            $this->info('Текущая ставка: ['.$rate.']');
-        } catch (\SoapFault $exception) {
-            $this->error('Загрузка данных произошла с ошибкой. Причина: '. $exception->getMessage());
+
+            $lastRate = \App\RefinancingRate::latest()->first();
+
+            if ($lastRate->rate != $rate) {
+                $this->info('Ставка была изменена с ['.$lastRate->rate.'] на ['.$rate.'].');
+
+                \App\RefinancingRate::create(['rate' => $rate]);
+            } else {
+                $this->info('Текущая ставка: ['.$rate.'].');
+            }
+
+        } catch (RefinancingRateResponse $e) {
+            $this->error('Загрузка данных произошла с ошибкой. Причина: '. $e->getMessage());
         }
     }
 }
