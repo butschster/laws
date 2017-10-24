@@ -2,6 +2,15 @@
 window._ = require('lodash');
 
 /**
+ * JS Storage is a plugin that simplifies access to storages (HTML5), cookies,
+ * and namespace storage functionality and provides compatiblity for old
+ * browsers with cookies!
+ */
+
+window.Storages = require('js-storage');
+window.s = Storages.localStorage;
+
+/**npm run
  * We'll load jQuery and the Bootstrap jQuery plugin which provides support
  * for JavaScript based Bootstrap features such as modals and tabs. This
  * code may be modified to fit the specific needs of your application.
@@ -24,6 +33,7 @@ try {
  */
 
 window.axios = require('axios');
+window.routes = require('./routes');
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
