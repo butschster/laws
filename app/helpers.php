@@ -37,3 +37,12 @@ function modules_path(string $path = ''): string
     return app(App\Contracts\Modules\ManagerInterface::class)->basePath().($path ? DIRECTORY_SEPARATOR.$path : $path);
 }
 
+/**
+ * @param string $string
+ *
+ * @return string
+ */
+function toUtf8(string $string): string
+{
+    return iconv(mb_detect_encoding($string, mb_detect_order(), true), "UTF-8", $string);
+}

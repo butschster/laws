@@ -15,21 +15,6 @@ class CourtInformationParser extends Parser
     const REGEX_ADDRESS = '/[0-9]{6}\,[ ]*(?<address>.*)\,[ ]*(д.*)/';
 
     /**
-     * @var Client
-     */
-    private $kladrClient;
-
-    /**
-     * CourtInformationParser constructor.
-     *
-     * @param Client $kladrClient
-     */
-    public function __construct(Client $kladrClient)
-    {
-        $this->kladrClient = $kladrClient;
-    }
-
-    /**
      * @param string $html
      *
      * @return array
@@ -37,7 +22,7 @@ class CourtInformationParser extends Parser
     public function parse(string $html): array
     {
         $crawler = new Crawler();
-        $crawler->addHtmlContent($this->convertToUtf8($html));
+        $crawler->addHtmlContent(toUtf8($html));
 
         $data = [
             'region' => $crawler->filter('body > div.sud_ter_name')->first()->text(),
@@ -45,8 +30,7 @@ class CourtInformationParser extends Parser
             'code' => $this->findCode($html),
             'phone' => $this->findPhone($html),
             'email' => [],
-            'url' => '',
-            // 'address_information' => $this->findAddressInformation($html)->first()->toArray()
+            'url' => ''
         ];
 
         $crawler->filter('a')->each(function ($node) use (&$data) {
@@ -86,24 +70,5 @@ class CourtInformationParser extends Parser
         preg_match(static::REGEX_CODE, $html, $code);
 
         return array_get($code, 'code');
-    }
-
-    /**
-     * @param string $html
-     *
-     * @return \Illuminate\Support\Collection
-     */
-    public function findAddressInformation(string $html)
-    {
-        $address = [];
-        preg_match(static::REGEX_ADDRESS, $html, $address);
-
-        $address = array_get($address, 'address');
-
-        if ( !empty($address)) {
-            return $this->kladrClient->findByAddress($address);
-        }
-
-        return collect();
     }
 }

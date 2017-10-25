@@ -8,8 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Court extends Model
 {
 
-    const TYPE_COMMON = 'fs'; // суды РФ общей юрисдикции
-    const TYPE_MIR    = 'mir'; // мировые суда РФ
+    const TYPE_COMMON        = 'fs'; // суды РФ общей юрисдикции
+    const TYPE_MIR           = 'mir'; // мировые суда РФ
+    const TYPE_ARBITR_OKRUG  = 'okrug'; // Арбитражные суды округов
+    const TYPE_ARBITR_APPEAL = 'appeal'; // Арбитражные апелляционные суды
+    const TYPE_ARBITR_SUBJ   = 'subj'; // Арбитражные суды субъектов РФ
+    const TYPE_ARBITR_SIP    = 'sip'; // Суд по интеллектуальным правам
 
     /**
      * Получение списка типов судов

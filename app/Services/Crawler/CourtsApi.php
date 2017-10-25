@@ -5,6 +5,8 @@ namespace App\Services\Crawler;
 use App\Court;
 use App\Exceptions\CourtInformationNotFound;
 use App\Exceptions\CourtJurisdictionsNotFound;
+use App\Services\Crawler\Parsers\ArbitrationCourtListParser;
+use App\Services\Crawler\Parsers\CourtBalloonParser;
 use App\Services\Crawler\Parsers\CourtInformationParser;
 use App\Services\Crawler\Parsers\CourtJurisdictionsParser;
 use Illuminate\Cache\CacheManager;
@@ -14,8 +16,7 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class CourtsApi
 {
-    // Паттерн разбора ответа списка судов
-    const PATTERN = "/balloons_user\[\'(?<code>[0-9A-Z]+)\'\]\.length\]\=\{type\:\'(?<type>([a-z]+))\'\,name\:\'(?<name>(.*))\'\,adress\:\'(?<address>(.*))\'\,coord\:\[(?<lat>[0-9]{2,4}\.[0-9]+)\,(?<lon>[0-9]{2,4}\.[0-9]+)\]/";
+
 
     /**
      * @var \GuzzleHttp\Client
@@ -54,25 +55,23 @@ class CourtsApi
     public function getCourts(string $type): array
     {
         return $this->cache->remember('courts:'.$type, now()->addDay(), function () use($type) {
-            $html = $this->query('https://sudrf.ru/index.php?id=300&act=ya_coords&type_suds='.$type);
+            $js = $this->query("https://sudrf.ru/index.php?id=300&act=ya_coords&type_suds={$type}");
 
-            $matches = [];
+            return app()->make(CourtBalloonParser::class)->parse($js);
+        });
+    }
 
-            preg_match_all(static::PATTERN, $html, $matches);
+    /**
+     * @param string $type
+     *
+     * @return array
+     */
+    public function getArbitrationCourts(string $type): array
+    {
+        return $this->cache->remember('arbitration_courts:'.$type, now()->addDay(), function () use($type) {
+            $html = $this->query("http://arbitr.ru/as/{$type}/");
 
-            $data = [];
-
-            foreach ($matches as $group => $groupRows) {
-                if (is_numeric($group)) {
-                    continue;
-                }
-
-                foreach ($groupRows as $i => $value) {
-                    $data[$i][$group] = $value;
-                }
-            }
-
-            return $data;
+            return app()->make(ArbitrationCourtListParser::class)->parse($html);
         });
     }
 
@@ -93,8 +92,7 @@ class CourtsApi
         }
 
         try {
-            $parser = app()->make(CourtInformationParser::class);
-            return $parser->parse($html);
+            return app()->make(CourtInformationParser::class)->parse($html);
         } catch (\Exception $exception) {
             throw new CourtInformationNotFound($code, 0, $exception);
         }
@@ -122,32 +120,20 @@ class CourtsApi
             throw new CourtJurisdictionsNotFound($court->code);
         }
 
-        $totalPages = $this->getTotalOfPages($html);
-
         $parser = app()->make(CourtJurisdictionsParser::class);
+
+        $totalPages = $parser->parseTotalPages($html);
 
         $jurisdictions = $parser->parse($html);
 
         if ($totalPages > 1) {
             for ($page = 2; $totalPages > $page; $page++) {
-                $html = $this->loadCourtJurisdictionsHTMLFromSite($url, $page);
+                $html = $this->loadCourtJurisdictionsHTMLFromSite($court->url, $page);
                 $jurisdictions = array_merge($jurisdictions, $parser->parse($html));
             }
         }
 
         return $jurisdictions;
-    }
-
-    /**
-     * Конвертация строки в UTF-8
-     *
-     * @param string $text
-     *
-     * @return string
-     */
-    protected function convertToUtf8(string $text): string
-    {
-        return iconv(mb_detect_encoding($text, mb_detect_order(), true), "UTF-8", $text);
     }
 
     /**
@@ -164,26 +150,6 @@ class CourtsApi
     }
 
     /**
-     * @param string $html
-     *
-     * @return int
-     */
-    protected function getTotalOfPages(string $html): int
-    {
-        $crawler = new Crawler();
-        $crawler->addHtmlContent($html);
-        $converter = new CssSelectorConverter();
-
-        $pagination = $crawler->filterXPath($converter->toXPath('div.pages_button button'));
-
-        if (count($pagination) > 0) {
-            return (int) $pagination->last()->text();
-        }
-
-        return 1;
-    }
-
-    /**
      * @param string $url
      *
      * @return string
@@ -197,6 +163,6 @@ class CourtsApi
             ]
         ]);
 
-        return $this->convertToUtf8($res->getBody()->getContents());
+        return toUtf8($res->getBody()->getContents());
     }
 }
