@@ -17,6 +17,11 @@ abstract class Module extends ServiceProvider implements ModuleInterface
     /**
      * @var string
      */
+    protected $path;
+
+    /**
+     * @var string
+     */
     protected $controllerNamespace;
 
     /**
@@ -34,7 +39,8 @@ abstract class Module extends ServiceProvider implements ModuleInterface
         parent::__construct($application);
 
         $this->name = $name;
-        $this->namespace = ($namespace ?: studly_case($name));
+        $this->path = studly_case($name);
+        $this->namespace = ($namespace ?: $this->path);
         $this->controllerNamespace = ($namespace ?: studly_case($name)).'\Http\Controllers';
     }
 
@@ -57,7 +63,7 @@ abstract class Module extends ServiceProvider implements ModuleInterface
      */
     public function getPath(string $path = ''): string
     {
-        return modules_path($this->getName().($path ? DIRECTORY_SEPARATOR.$path : $path));
+        return modules_path($this->path.($path ? DIRECTORY_SEPARATOR.$path : $path));
     }
 
     /**
