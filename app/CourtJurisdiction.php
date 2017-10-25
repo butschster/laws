@@ -12,4 +12,14 @@ class CourtJurisdiction extends Model
      * @var array
      */
     protected $fillable = ['city', 'address'];
+
+    /**
+     * Получение объекта суда
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function court()
+    {
+        return $this->belongsTo(Court::class);
+    }
 }
