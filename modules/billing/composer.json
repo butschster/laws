@@ -1,0 +1,22 @@
+{
+  "name": "law/billing",
+  "description": "Модуль оплаты и счетов",
+  "type": "module",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Pavel Buchnev",
+      "email": "butschster@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.0"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Module\\Billing\\Providers\\AppServiceProvider"
+      ]
+    }
+  }
+}
