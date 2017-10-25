@@ -9,37 +9,42 @@ use App\Services\Crawler\Parsers\ArbitrationCourtListParser;
 use App\Services\Crawler\Parsers\CourtBalloonParser;
 use App\Services\Crawler\Parsers\CourtInformationParser;
 use App\Services\Crawler\Parsers\CourtJurisdictionsParser;
-use Illuminate\Cache\CacheManager;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\CssSelector\CssSelectorConverter;
-use Symfony\Component\DomCrawler\Crawler;
+use GuzzleHttp\Client as HttpClient;
+use Illuminate\Cache\CacheManager as Cache;
+use Illuminate\Contracts\Foundation\Application;
+use Psr\Log\LoggerInterface as Logger;
 
 class CourtsApi
 {
-
-
     /**
-     * @var \GuzzleHttp\Client
+     * @var HttpClient
      */
     private $client;
 
     /**
-     * @var LoggerInterface
+     * @var Logger
      */
     private $logger;
 
     /**
-     * @var CacheManager
+     * @var Cache
      */
     private $cache;
 
     /**
-     * @param \GuzzleHttp\Client $client
-     * @param LoggerInterface $logger
-     * @param CacheManager $cache
+     * @var Application
      */
-    public function __construct(\GuzzleHttp\Client $client, LoggerInterface $logger, CacheManager $cache)
+    private $app;
+
+    /**
+     * @param Application $app
+     * @param HttpClient $client
+     * @param Logger $logger
+     * @param Cache $cache
+     */
+    public function __construct(Application $app, HttpClient $client, Logger $logger, Cache $cache)
     {
+        $this->app = $app;
         $this->client = $client;
         $this->logger = $logger;
         $this->cache = $cache;
@@ -57,7 +62,7 @@ class CourtsApi
         return $this->cache->remember('courts:'.$type, now()->addDay(), function () use($type) {
             $js = $this->query("https://sudrf.ru/index.php?id=300&act=ya_coords&type_suds={$type}");
 
-            return app()->make(CourtBalloonParser::class)->parse($js);
+            return $this->app->make(CourtBalloonParser::class)->parse($js);
         });
     }
 
@@ -71,7 +76,7 @@ class CourtsApi
         return $this->cache->remember('arbitration_courts:'.$type, now()->addDay(), function () use($type) {
             $html = $this->query("http://arbitr.ru/as/{$type}/");
 
-            return app()->make(ArbitrationCourtListParser::class)->parse($html);
+            return $this->app->make(ArbitrationCourtListParser::class)->parse($html);
         });
     }
 
@@ -92,7 +97,7 @@ class CourtsApi
         }
 
         try {
-            return app()->make(CourtInformationParser::class)->parse($html);
+            return $this->app->make(CourtInformationParser::class)->parse($html);
         } catch (\Exception $exception) {
             throw new CourtInformationNotFound($code, 0, $exception);
         }
@@ -120,7 +125,7 @@ class CourtsApi
             throw new CourtJurisdictionsNotFound($court->code);
         }
 
-        $parser = app()->make(CourtJurisdictionsParser::class);
+        $parser = $this->app->make(CourtJurisdictionsParser::class);
 
         $totalPages = $parser->parseTotalPages($html);
 
