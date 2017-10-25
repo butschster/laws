@@ -2,7 +2,9 @@
 
 namespace App\Services\Crawler\Parsers;
 
-abstract class Parser
+use App\Contracts\ParserInterface;
+
+abstract class Parser implements ParserInterface
 {
     /**
      * @param string $html
@@ -10,14 +12,4 @@ abstract class Parser
      * @return array
      */
     abstract public function parse(string $html): array;
-
-    /**
-     * @param string $text
-     *
-     * @return string
-     */
-    protected function convertToUtf8(string $text): string
-    {
-        return iconv(mb_detect_encoding($text, mb_detect_order(), true), "UTF-8", $text);
-    }
 }

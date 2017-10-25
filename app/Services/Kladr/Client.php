@@ -7,7 +7,8 @@ use Illuminate\Support\Collection;
 
 class Client
 {
-    const DOMAIN = 'http://kladr-api.ru/';
+
+    const URL = 'http://kladr-api.ru/api.php';
 
     /**
      * @var string
@@ -43,9 +44,7 @@ class Client
      */
     public function findByAddress(string $address, int $limit = 10): Collection
     {
-        return $this->query(
-            new OneStringQuery($address, $limit)
-        );
+        return $this->query(new OneStringQuery($address, $limit));
     }
 
     /**
@@ -58,10 +57,17 @@ class Client
      */
     private function query(Query $query): Collection
     {
-        $result = $this->client->get($this->getURL($query), [
+        $request = [];
+
+        if (! empty($this->token)) {
+            $request['token'] = $this->token;
+        }
+
+        $result = $this->client->get(static::URL, [
+            'query' => array_merge($query->toArray(), $request),
             'headers' => [
                 'Connection' => 'close',
-                'User-Agent' => \Campo\UserAgent::random()
+                'User-Agent' => \Campo\UserAgent::random(),
             ],
         ]);
 
@@ -71,28 +77,12 @@ class Client
             throw new ApiResponseException($matches[1]);
         }
 
-        $array = json_decode($response, true);
+        $array = \GuzzleHttp\json_decode($response, true);
 
         return collect($array['result'])
             ->where('contentType', 'street')
             ->map(function ($street) {
                 return new Street($street);
             });
-    }
-
-    /**
-     * @param Query $query
-     *
-     * @return bool|string
-     */
-    private function getURL(Query $query)
-    {
-        $request = [];
-
-        if ( !empty($this->token)) {
-            $request['token'] = $this->token;
-        }
-
-        return static::DOMAIN.'api.php?'.http_build_query(array_merge($query->toArray(), $request));
     }
 }

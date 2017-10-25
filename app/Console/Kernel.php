@@ -31,9 +31,9 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('update:refinancing-rate')->daily();
-        $schedule->command('sync:courts')->monthly();
-        $schedule->command('sync:court:jurisdictions')->daily();
+        $schedule->command('sync:refinancing-rate')->dailyAt('7:00');
+        // $schedule->command('sync:courts')->monthly();
+        // $schedule->command('sync:court:jurisdictions')->daily();
     }
 
     /**
