@@ -23,6 +23,8 @@ class Region extends Model
     }
 
     /**
+     * Получение федерального округа
+     *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function federalDistrict()
