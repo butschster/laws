@@ -14,7 +14,7 @@ class UpdateRefinancingRate extends Command
      *
      * @var string
      */
-    protected $signature = 'update:refinancing-rate';
+    protected $signature = 'sync:refinancing-rate';
 
     /**
      * The console command description.

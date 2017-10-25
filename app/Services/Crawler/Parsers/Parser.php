@@ -2,7 +2,9 @@
 
 namespace App\Services\Crawler\Parsers;
 
-abstract class Parser
+use App\Contracts\ParserInterface;
+
+abstract class Parser implements ParserInterface
 {
     /**
      * @param string $html
