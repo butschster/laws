@@ -3,6 +3,7 @@
 namespace Module\Billing\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Module\Billing\Exceptions\WalletNotSavedException;
 
 class Wallet extends Model
 {
@@ -40,7 +41,7 @@ class Wallet extends Model
     public function deposit($amount)
     {
         if (!$this->exists || $this->isDirty()) {
-            throw new \Exception('You must save wallet before deposit the money');
+            throw new WalletNotSavedException();
         }
         $this->balance += $amount;
 

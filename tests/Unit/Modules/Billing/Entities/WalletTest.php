@@ -5,6 +5,7 @@ namespace Tests\Unit\Modules\Billing\Entities;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Billing\Entities\Invoice;
 use Module\Billing\Entities\Wallet;
+use Module\Billing\Exceptions\WalletNotSavedException;
 use Tests\TestCase;
 
 class WalletTest extends TestCase
@@ -29,7 +30,7 @@ class WalletTest extends TestCase
 
         try {
             $wallet->deposit(123);
-        } catch (\Exception $e) {
+        } catch (WalletNotSavedException $e) {
             $this->assertEquals(0, $wallet->totalBalance());
             return;
         }
