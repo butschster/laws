@@ -17,6 +17,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::post('claim-calculator', 'ClaimCalculatorController@calculate');
+
 Route::post('store-document', function (\Illuminate\Http\Request $request, \PhpOffice\PhpWord\PhpWord $phpWord) {
 
     $validator = Validator::make($request->all(), [
@@ -69,7 +71,7 @@ Route::post('store-document', function (\Illuminate\Http\Request $request, \PhpO
             \App\Court::first(),
             $plaintiff = \App\Law\Plaintiff::fromArray($data['plaintiff']),
             \App\Law\Respondent::fromArray($data['respondent']),
-            $claim = new \App\Law\ClaimAmount(
+            $claim = new \App\Law\Claim(
                 $data['amount'],
                 custom_date($data['date_of_borrowing']),
                 custom_date($data['date_of_return']),

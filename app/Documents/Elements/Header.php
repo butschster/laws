@@ -5,7 +5,7 @@ namespace App\Documents\Elements;
 use App\Contracts\Documents\ElementInterface;
 use App\Court;
 use App\Law\Amount;
-use App\Law\ClaimAmount;
+use App\Law\Claim;
 use App\Law\Plaintiff;
 use App\Law\Respondent;
 use App\Law\Tax;
@@ -58,10 +58,10 @@ class Header implements ElementInterface
      * @param Court $court Суд
      * @param Plaintiff $plaintiff Истец
      * @param Respondent $respondent Ответчик
-     * @param ClaimAmount $cost Сумма заёма
+     * @param Claim $cost Займ
      * @param Tax $tax Размер госпошлины
      */
-    public function __construct(Court $court, Plaintiff $plaintiff, Respondent $respondent, ClaimAmount $cost, Tax $tax)
+    public function __construct(Court $court, Plaintiff $plaintiff, Respondent $respondent, Claim $cost, Tax $tax)
     {
         $this->court = new \App\Law\Court($court);
         $this->plaintiff = $plaintiff;
@@ -89,7 +89,7 @@ class Header implements ElementInterface
         $this->court->insertTo($cell);
         $this->plaintiff->insertTo($cell);
         $this->respondent->insertTo($cell);
-        $this->cost->insertTo($cell);
+        $this->cost->amount()->insertTo($cell);
         $this->tax->insertTo($cell);
     }
 }

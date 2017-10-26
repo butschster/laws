@@ -26,6 +26,9 @@ try {
     console.error('jQuery components not inited!', e)
 }
 
+window.moment = require('moment');
+moment.locale('ru');
+
 /**
  * We'll load the axios HTTP library which allows us to easily issue requests
  * to our Laravel back-end. This library automatically handles sending the

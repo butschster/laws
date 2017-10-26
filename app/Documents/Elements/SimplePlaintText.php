@@ -3,25 +3,29 @@
 namespace App\Documents\Elements;
 
 use App\Contracts\Documents\ElementInterface;
-use App\Law\ClaimAmount;
-use App\Law\ReturnedClaimAmount;
-use Carbon\Carbon;
+use App\Law\Claim;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
 class SimplePlaintText implements ElementInterface
 {
 
     /**
-     * @var ClaimAmount
+     * @var \App\Law\ClaimAmount
      */
     private $amount;
 
     /**
-     * @param ClaimAmount $amount
+     * @var Claim
      */
-    public function __construct(ClaimAmount $amount)
+    private $claim;
+
+    /**
+     * @param Claim $claim
+     */
+    public function __construct(Claim $claim)
     {
-        $this->amount = $amount;
+        $this->claim = $claim;
+        $this->amount = $claim->amount();
     }
 
     /**
@@ -34,21 +38,21 @@ class SimplePlaintText implements ElementInterface
         $container->addText(sprintf(
             "Между Истцом и Ответчиком был заключен договор беспроцентного займа на сумму %s, что подтверждается распиской от %s",
             (string) $this->amount,
-            format_date($this->amount ->borrowingDate())
+            format_date($this->claim->borrowingDate())
         ));
 
         $container->addText(sprintf(
             "Срок возврата денежных средств был определен сторонами %s",
-            format_date($this->amount->returnDate())
+            format_date($this->claim->returnDate())
         ));
 
         $container->addText("Согласно ч. 1 ст. 810 ГК РФ, заемщик обязан возвратить займодавцу полученную сумму займа в срок и в порядке, которые предусмотрены договором займа.");
 
-        if ($this->amount->hasReturnedAmounts()) {
+        if ($this->claim->hasReturnedAmounts()) {
             $container->addText("Из суммы займа Ответчик возвратил:");
 
             $amounts = [];
-            foreach ($this->amount->returnedAmounts() as $amount) {
+            foreach ($this->claim->returnedAmounts() as $amount) {
                 $amounts[] = sprintf('%s - %s', format_date($amount->returnDate()), (string) $amount);
             }
 
@@ -58,7 +62,7 @@ class SimplePlaintText implements ElementInterface
 
             $container->addText(sprintf(
                 "Таким образом, Ответчик на день предъявления искового заявления имеет задолженность по основному обязательству в размере %s",
-                (string) $this->amount->residualAmount()
+                (string) $this->claim->residualAmount()
             ));
         }
 
@@ -69,7 +73,7 @@ class SimplePlaintText implements ElementInterface
         (new NumberedList([
             sprintf(
                 'Взыскать с Ответчика сумму задолженности по договору займа в размере %s',
-                (string) $this->amount->residualAmount()
+                (string) $this->claim->calculateReturnAmount()
             ),
             "Судебные расходы возложить на Ответчика."
         ]))->insertTo($container);
@@ -82,7 +86,7 @@ class SimplePlaintText implements ElementInterface
             "экземпляр настоящего искового заявления для Ответчика;",
             "заверенная копия страниц паспорта Истца (титульная и регистрация);",
             "квитанция об оплате государственной пошлины;",
-            sprintf("заверенная копия расписки от %s – 2 экз. (для суда и для Ответчика).", format_date($this->amount->borrowingDate()))
+            sprintf("заверенная копия расписки от %s – 2 экз. (для суда и для Ответчика).", format_date($this->claim->borrowingDate()))
         ]))->insertTo($container);
     }
 }
