@@ -2,6 +2,8 @@
 
 namespace App\Law\Calculator\Strategies;
 
+use Carbon\Carbon;
+
 class Weekly extends Strategy
 {
     /**
@@ -11,41 +13,60 @@ class Weekly extends Strategy
     {
         $totalFullWeeks = $this->to->diffInWeeks($this->from);
 
-        return
-            $this->calculateAmount($totalFullWeeks, $this->percents)
-            + $this->calculateAmount(1, $this->getFirstWeekPercents())
-            + $this->calculateAmount(1, $this->getLastWeekPercents());
+        $amount = $this->calculateAmount($totalFullWeeks, $this->percents);
+        $amount += $this->getLastWeekAmount($totalFullWeeks);
+
+        return round($amount, 2);
     }
 
     /**
+     * @param int $totalFullWeeks
+     *
      * @return float
      */
-    public function getFirstWeekPercents(): float
-    {
-        $lastDay = clone $this->from;
-
-        if ($lastDay->startOfWeek()->eq($this->from)) {
-            return 0;
-        }
-
-        $totalDays = $lastDay->endOfWeek()->diffInDays($this->from);
-
-        return round(($totalDays / 7) * $this->percents, 2);
-    }
-
-    /**
-     * @return float
-     */
-    public function getLastWeekPercents(): float
+    public function getLastWeekAmount(int $totalFullWeeks): float
     {
         $firstDay = clone $this->to;
+        $from = clone $this->from;
 
         if ($firstDay->endOfWeek()->eq($this->to)) {
             return 0;
         }
 
-        $totalDays = $this->to->diffInDays($firstDay->startOfWeek());
+        $lastWeek = $from->addWeeks($totalFullWeeks);
 
-        return round(($totalDays / 7) * $this->percents, 2);
+        if (($days = $lastWeek->diffInDays($this->to)) == 0) {
+            return 0;
+        }
+
+        $endOfLastWeek = clone $lastWeek;
+
+        $amount = 0;
+
+
+        if ($endOfLastWeek->endOfWeek()->lt($this->to)) {
+            $amount += $this->calculateDaysAmount($endOfLastWeek->endOfMonth(), $lastWeek);
+            $amount += $this->calculateDaysAmount($endOfLastWeek->subDay(1), $this->to);
+        } else {
+            $amount += $this->calculateDaysAmount($lastWeek, $this->to);
+        }
+
+        return $amount;
+    }
+
+    /**
+     * @param Carbon $from
+     * @param Carbon $to
+     *
+     * @return float
+     */
+    protected function calculateDaysAmount(Carbon $from, Carbon $to): float
+    {
+        $totalDays = $from->diffInDays($to);
+        if ($totalDays > 0) {
+            return $this->calculateAmount(1, $totalDays / 7 * $this->percents);
+        }
+
+        return 0;
     }
 }
