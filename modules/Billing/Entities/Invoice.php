@@ -3,6 +3,7 @@
 namespace Module\Billing\Entities;
 
 use Illuminate\Database\Eloquent\Model;
+use Module\Billing\Exceptions\WrongInvoiceStatusException;
 
 class Invoice extends Model
 {
@@ -66,10 +67,21 @@ class Invoice extends Model
 
     public function pay()
     {
+        $this->checkStatusForPay();
+
         $this->fillStatus('completed');
 
-        $this->wallet->deposite($this->amount);
+        $this->wallet->deposit($this->amount);
 
         return $this->save();
+    }
+
+    protected function checkStatusForPay()
+    {
+        if( $this->status->code == 'completed') {
+            throw new WrongInvoiceStatusException();
+        }
+
+        return $this;
     }
 }

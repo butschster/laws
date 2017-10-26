@@ -37,10 +37,10 @@ class Wallet extends Model
      * @return $this
      * @throws \Exception
      */
-    public function deposite($amount)
+    public function deposit($amount)
     {
         if (!$this->exists || $this->isDirty()) {
-            throw new \Exception('You must save wallet before deposite the money');
+            throw new \Exception('You must save wallet before deposit the money');
         }
         $this->balance += $amount;
 

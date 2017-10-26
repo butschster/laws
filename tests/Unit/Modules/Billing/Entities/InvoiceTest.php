@@ -3,9 +3,10 @@
 namespace Tests\Unit\Modules\Billing\Entities;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Validation\Rules\In;
 use Module\Billing\Entities\Invoice;
+use Module\Billing\Entities\InvoiceStatus;
 use Module\Billing\Entities\Wallet;
+use Module\Billing\Exceptions\WrongInvoiceStatusException;
 use Tests\TestCase;
 
 class InvoiceTest extends TestCase
@@ -30,7 +31,7 @@ class InvoiceTest extends TestCase
 
         $invoice = Invoice::createForWallet(12.34, $wallet);
 
-        $this->assertEquals('new', $invoice->status->code);
+        $this->assertEquals(InvoiceStatus::STATUS_NEW, $invoice->status->code);
     }
 
     /** @test */
@@ -43,6 +44,23 @@ class InvoiceTest extends TestCase
         $invoice->pay();
 
         $this->assertEquals(12.34, $wallet->freshBalance());
+    }
 
+    /** @test */
+    function cannot_pay_an_invoice_with_completed_status()
+    {
+        $invoice = factory(Invoice::class)->states('completed')->create();
+        $currentBalance = $invoice->wallet->freshBalance();
+        $this->assertEquals(InvoiceStatus::STATUS_COMPLETED, $invoice->status->code);
+
+
+        try {
+            $invoice->pay();
+        } catch (WrongInvoiceStatusException $e) {
+            $this->assertEquals($currentBalance, $invoice->wallet->freshBalance());
+            return;
+        }
+
+        $this->fail("Прошел платеж повторно по выполненному счету");
     }
 }

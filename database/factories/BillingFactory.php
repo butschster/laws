@@ -36,7 +36,13 @@ $factory->define(Invoice::class, function (Faker $faker) {
 
 $factory->state(Invoice::class, 'new', function($faker){
     return [
-        'status_id' => InvoiceStatus::where('code', 'new')->firstOrFail()->id,
+        'status_id' => InvoiceStatus::where('code', InvoiceStatus::STATUS_NEW)->firstOrFail()->id,
+    ];
+});
+
+$factory->state(Invoice::class, 'completed', function($faker){
+    return [
+        'status_id' => InvoiceStatus::where('code', InvoiceStatus::STATUS_COMPLETED)->firstOrFail()->id,
     ];
 });
 

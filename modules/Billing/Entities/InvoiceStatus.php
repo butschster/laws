@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class InvoiceStatus extends Model
 {
+    const STATUS_NEW = 'new'; // Проведена
+
+    const STATUS_COMPLETED = 'completed'; // Проведена
+
+    const STATUS_CANCELED = 'canceled'; // Отклонено
+
+    const STATUS_PROCESSING = 'processing'; // В процессе
+
+    const STATUS_FAILED = 'failed'; // Не проведен
+
     /**
      * @var string
      */

@@ -17,7 +17,7 @@ class WalletTest extends TestCase
         $wallet = factory(Wallet::class)->states('zero')->create();
         $this->assertEquals(0, $wallet->totalBalance());
 
-        $wallet->deposite(12.34);
+        $wallet->deposit(12.34);
 
         $this->assertEquals(12.34, $wallet->totalBalance());
     }
@@ -28,7 +28,7 @@ class WalletTest extends TestCase
         $wallet = factory(Wallet::class)->states('zero')->make();
 
         try {
-            $wallet->deposite(123);
+            $wallet->deposit(123);
         } catch (\Exception $e) {
             $this->assertEquals(0, $wallet->totalBalance());
             return;
