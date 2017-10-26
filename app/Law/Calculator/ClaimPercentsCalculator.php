@@ -9,6 +9,7 @@ use App\Law\Calculator\Strategies\Monthly;
 use App\Law\Calculator\Strategies\Weekly;
 use App\Law\Calculator\Strategies\Yearly;
 use App\Law\Claim;
+use Carbon\Carbon;
 
 class ClaimPercentsCalculator
 {
@@ -27,6 +28,8 @@ class ClaimPercentsCalculator
     }
 
     /**
+     * Получение суммы возвращаемой по процентам
+     *
      * @return float
      */
     public function percentsAmount(): float
@@ -34,13 +37,32 @@ class ClaimPercentsCalculator
         $percents = $this->claim->percents();
 
         if ($percents > 0) {
-            return $this->getStrategy($percents)->calculate();
+            $startDate = $this->claim->borrowingDate();
+            $endDate = $this->claim->returnDate();
+            $amount = $this->claim->amount()->amount();
+
+            $totalPercentsAmount = 0;
+
+            // Расчитываем проценты с учетом отданных в течение срока денег
+            foreach ($this->claim->returnedAmounts() as $return) {
+                $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $return->returnDate())->calculate();
+
+                $amount -= $return->amount();
+                $startDate = $return->returnDate();
+            }
+
+            // Расчет процентов по оставшимся на руках деньгах
+            $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $endDate)->calculate();
+
+            return $totalPercentsAmount;
         }
 
         return 0.0;
     }
 
     /**
+     * Получение суммы для возврата с учетом процентов
+     *
      * @return float
      */
     public function totalAmount(): float
@@ -49,17 +71,19 @@ class ClaimPercentsCalculator
     }
 
     /**
+     * Выбор стратегии для расчета процентов
+     *
+     * @param float $amount
      * @param float $percents
+     * @param Carbon $startDate
+     * @param Carbon $endDate
      *
      * @return Strategy
      * @throws ClaimPercentsCalculatorException
      */
-    protected function getStrategy(float $percents): Strategy
+    protected function getStrategy(float $amount, float $percents, Carbon $startDate, Carbon $endDate): Strategy
     {
-        $startDate = $this->claim->borrowingDate();
-        $endDate = $this->claim->returnDate();
         $interval = $this->claim->interval();
-        $amount = $this->claim->amount()->amount();
 
         switch ($interval) {
             case Claim::DAILY:
@@ -71,6 +95,7 @@ class ClaimPercentsCalculator
             case Claim::YEARLY:
                 return new Yearly($amount, $startDate, $endDate, $percents);
             default:
+
                 throw new ClaimPercentsCalculatorException('Strategy not found');
 
         }

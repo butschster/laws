@@ -2,6 +2,7 @@
 
 namespace App\Law;
 
+use App\Law\Calculator\ClaimPercentsCalculator;
 use Carbon\Carbon;
 
 /**
@@ -153,5 +154,13 @@ class Claim
     public function interval(): string
     {
         return $this->interval;
+    }
+
+    /**
+     * @return float
+     */
+    public function calculateReturnAmount(): float
+    {
+        return (new ClaimPercentsCalculator($this))->totalAmount();
     }
 }
