@@ -4,7 +4,7 @@ namespace Module\Billing\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Module\Billing\Entities\BalanceTransaction;
-use Modules\Billing\Observers\BalanceTransactionObserver;
+use Module\Billing\Observers\BalanceTransactionObserver;
 
 class BalanceServiceProvider extends ServiceProvider
 {

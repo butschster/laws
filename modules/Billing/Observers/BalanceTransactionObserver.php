@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Modules\Billing\Observers;
+namespace Module\Billing\Observers;
 
 
 use Module\Billing\Entities\BalanceTransaction;
@@ -13,7 +13,6 @@ class BalanceTransactionObserver
      */
     public function created(BalanceTransaction $transaction)
     {
-        dd('zz');
         if ($transaction->isInflow()) {
             Balance::increase($transaction);
         } else {
