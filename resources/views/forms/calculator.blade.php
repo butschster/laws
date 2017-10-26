@@ -2,15 +2,16 @@
 
 <script type="text/x-template" id="calculator-form-template">
     <div>
+        <h2 class="mb-3">Калькулятор для расчета процентов по займу</h2>
+
         <div class="g-brd-around g-brd-gray-light-v4 g-pa-30 g-mb-30">
-            <div class="form-group">
-                <range-datepickers
-                        :start-label="LabelDateOfBorrowing"
-                        :end-label="LabelDateOfReturn"
-                        :start-date="data.start"
-                        :end-date="data.end"
-                        format="dd.MM.yyyy"
-                        v-model="data.dates"></range-datepickers>
+            <div class="form-group form-row">
+                <div class="col">
+                    <date-picker v-model="data.date_of_borrowing" :config="config"></date-picker>
+                </div>
+                <div class="col">
+                    <date-picker v-model="data.date_of_return" :config="config"></date-picker>
+                </div>
             </div>
 
             <div class="form-group">
@@ -38,7 +39,8 @@
                         <div class="form-group form-row">
                             <div class="col">
                                 <label>Дата возврата</label>
-                                <datepicker v-model="row.date" format="dd.MM.yyyy" :bootstrap-styling="true"></datepicker>
+
+                                <date-picker v-model="row.date" :config="config"></date-picker>
                             </div>
                             <div class="col">
                                 <label>Сумма</label>
@@ -69,8 +71,8 @@
         </div>
 
         <div class="alert alert-info mt-4" v-if="totalAmount > 0">
-            Всего по процентам: <span v-text="totalPercentsAmount"></span><br />
-            Итого: <span v-text="totalAmount"></span><br />
+            Всего по процентам: <span v-text="totalPercentsAmount"></span><br/>
+            Итого: <span v-text="totalAmount"></span><br/>
         </div>
 
         <button type="submit" class="btn btn-lg btn-primary" @click="send">
@@ -131,12 +133,14 @@
             template: '#calculator-form-template',
             data() {
                 return {
+                    config: {
+                        format: 'DD.MM.YYYY',
+                        useCurrent: false,
+                    },
                     data: {
-                        dates: {
-                            start: moment().subtract(12, 'months').toDate(),
-                            end: moment().toDate(),
-                        },
-                        amount: 0,
+                        date_of_borrowing: moment().subtract(1, 'year').format('DD.MM.YYYY'),
+                        date_of_return: moment().format('DD.MM.YYYY'),
+                        amount: 50000,
                         has_returned_money: false,
                         partly_returned_money: [],
                         is_interest_bearing_loan: true,
@@ -159,7 +163,7 @@
             },
             watch: {
                 data: {
-                    handler(){
+                    handler() {
                         _.delay(data => s.set('calculator-form-history', data), 5000, this.data);
                     },
                     deep: true
@@ -168,7 +172,7 @@
             methods: {
                 addPartlyReturnedMoneyRow() {
                     this.data.partly_returned_money.push({
-                        date: moment().toDate(),
+                        date: moment().format('DD.MM.YYYY'),
                         amount: 0
                     })
                 },

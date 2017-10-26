@@ -8,8 +8,8 @@ require('./bootstrap');
 
 window.Vue = require('vue');
 
-Vue.component('range-datepickers', require('../Vue/Form/DateRangePicker.vue'));
-Vue.component('datepicker', require('vuejs-datepicker'));
+import Datepicker from 'vue-bootstrap-datetimepicker';
+Vue.use(Datepicker);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
