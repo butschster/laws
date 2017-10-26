@@ -12,6 +12,7 @@ class AppServiceProvider extends ModuleServiceProvider
     {
         $this->registerModule('billing', 'Module\Billing');
         $this->app->register(EventServiceProvider::class);
+        $this->app->register(BalanceServiceProvider::class);
     }
 
     /**
