@@ -59,6 +59,41 @@
 
             <div class="form-group">
                 <label class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" v-model="data.has_claimed_money">
+                    <span class="custom-control-indicator"></span>
+                    <span class="custom-control-description">Осуществлялось ли должником учеличение займа?</span>
+                </label>
+            </div>
+
+            <div v-if="data.has_claimed_money">
+                <ul class="list-group mb-4" v-if="data.claimed_money.length">
+                    <li class="list-group-item" v-for="(row, index) in data.claimed_money">
+                        <button type="button" class="close" @click="removeClaimedMoneyRow(index)">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+
+                        <div class="form-group form-row">
+                            <div class="col">
+                                <label>Дата займа</label>
+                                <date-picker v-model="row.date" :config="config"></date-picker>
+                            </div>
+                            <div class="col">
+                                <label>Сумма</label>
+                                <input class="form-control" v-model.number="row.amount" type="number">
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+
+                <button type="button" class="btn btn-success" @click="addClaimedMoneyRow">
+                    Добавить
+                </button>
+            </div>
+
+            <hr>
+
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
                     <input type="checkbox" v-model="data.is_interest_bearing_loan" class="custom-control-input">
                     <span class="custom-control-indicator"></span>
                     <span class="custom-control-description">Займ является процентным </span>
@@ -141,8 +176,13 @@
                         date_of_borrowing: moment().subtract(1, 'year').format('DD.MM.YYYY'),
                         date_of_return: moment().format('DD.MM.YYYY'),
                         amount: 50000,
+
                         has_returned_money: false,
                         partly_returned_money: [],
+
+                        has_claimed_money: false,
+                        claimed_money: [],
+
                         is_interest_bearing_loan: true,
                         interest_bearing_loan: {
                             percent: 15,
@@ -178,6 +218,16 @@
                 },
                 removePartlyReturnedMoneyRow(i) {
                     this.data.partly_returned_money.splice(i, 1);
+                },
+
+                addClaimedMoneyRow() {
+                    this.data.claimed_money.push({
+                        date: moment().format('DD.MM.YYYY'),
+                        amount: 0
+                    })
+                },
+                removeClaimedMoneyRow(i) {
+                    this.data.claimed_money.splice(i, 1);
                 },
 
                 send() {

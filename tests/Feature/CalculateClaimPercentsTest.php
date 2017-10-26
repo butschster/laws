@@ -52,12 +52,55 @@ class CalculateClaimPercentsTest extends TestCase
         // Октябрь - 6 000
         // Ноябрь - 6 000
         // Декабрь - 6 000
-        // 01.01.18 Должны вернуть 92 000 процентов и 100 000 займа
+        // 01.01.18 Должны вернуть 92 000 процентов и 152 000 займа
 
         $calculator = new ClaimPercentsCalculator($claim);
 
         $this->assertEquals(92000, $calculator->percentsAmount());
-        $this->assertEquals(192000, $calculator->totalAmount());
+        $this->assertEquals(152000, $calculator->totalAmount());
+    }
+
+    function test_calculate_claim_percents_with_additional_claimed_money()
+    {
+        $claim = new Claim(100000, Carbon::parse('2017-01-01'), Carbon::parse('2018-01-01'), 10);
+
+        $claim->addClaimedMoney(Carbon::parse('2017-03-01'), 20000);
+        $claim->addClaimedMoney(Carbon::parse('2017-09-01'), 20000);
+
+        // Взяли 100 000 под 10% в месяц с 01.01.17
+        // Январь - 10 000
+        // Февраоь - 10 000
+        // 01.03 взяли 20 000
+        // Март - 12 000
+        // Апрель - 12 000
+        // Май - 12 000
+        // Июнь - 12 000
+        // Июль - 12 000
+        // Август - 12 000
+        // 01.09 вернули 20 000
+        // Сентябрь - 14 000
+        // Октябрь - 14 000
+        // Ноябрь - 14 000
+        // Декабрь - 14 000
+        // 01.01.18 Должны вернуть 148 000 процентов и 100 000 займа
+
+        $calculator = new ClaimPercentsCalculator($claim);
+
+        $this->assertEquals(148000, $calculator->percentsAmount());
+        $this->assertEquals(288000, $calculator->totalAmount());
+    }
+
+    function test_calculate_claim_percents_with_additional_claimed_and_returned_money()
+    {
+        $claim = new Claim(50000, Carbon::parse('2016-10-26'), Carbon::parse('2017-10-26'), 2);
+
+        $claim->addClaimedMoney(Carbon::parse('2017-02-26'), 50000);
+        $claim->addReturnedMoney(Carbon::parse('2017-06-26'), 50000);
+
+        $calculator = new ClaimPercentsCalculator($claim);
+
+        $this->assertEquals(16000, $calculator->percentsAmount());
+        $this->assertEquals(66000, $calculator->totalAmount());
     }
 
     function claimAmounts()

@@ -4,6 +4,7 @@ namespace App\Law\Calculator;
 
 use App\Contracts\Law\Calculator\Strategy;
 use App\Exceptions\ClaimPercentsCalculator as ClaimPercentsCalculatorException;
+use App\Law\AdditionalClaimAmount;
 use App\Law\Calculator\Strategies\Daily;
 use App\Law\Calculator\Strategies\Monthly;
 use App\Law\Calculator\Strategies\Weekly;
@@ -38,21 +39,45 @@ class ClaimPercentsCalculator
 
         if ($percents > 0) {
             $startDate = $this->claim->borrowingDate();
-            $endDate = $this->claim->returnDate();
             $amount = $this->claim->amount()->amount();
 
             $totalPercentsAmount = 0;
 
-            // Расчитываем проценты с учетом отданных в течение срока денег
-            foreach ($this->claim->returnedAmounts() as $return) {
-                $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $return->returnDate())->calculate();
+            $additionalAmounts = $this->claim->additionalAmounts();
 
-                $amount -= $return->amount();
-                $startDate = $return->returnDate();
+            // Если у нас есть доп займы или погашения, то сначала считаем проценты до их наступления
+            if ($additionalAmounts->count() > 0) {
+                $firstClaim = $additionalAmounts->first();
+
+                $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $firstClaim->date())->calculate();
+                $startDate = $firstClaim->date();
+            }
+
+            // Расчитываем проценты с учетом отданных и полученых денег в течение срока
+            foreach ($additionalAmounts as $i => $item) {
+                // Если это дополнительный займ
+                if ($item instanceof AdditionalClaimAmount) {
+                    $amount += $item->amount();
+
+                    $nextClaim = $additionalAmounts->slice($i+1)->first();
+
+                    if ($nextClaim) {
+                        $totalPercentsAmount += $this->getStrategy($amount, $percents, $item->date(), $nextClaim->date())->calculate();
+                        $startDate = $nextClaim->date();
+                    } else {
+                        $startDate = $item->date();
+                    }
+
+                } else { // Если это частичный возврат
+                    $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $item->date())->calculate();
+
+                    $amount -= $item->amount();
+                    $startDate = $item->date();
+                }
             }
 
             // Расчет процентов по оставшимся на руках деньгах
-            $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $endDate)->calculate();
+            $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $this->claim->returnDate())->calculate();
 
             return $totalPercentsAmount;
         }
@@ -67,7 +92,17 @@ class ClaimPercentsCalculator
      */
     public function totalAmount(): float
     {
-        return $this->percentsAmount() + $this->claim->amount()->amount();
+        $amount = $this->claim->amount()->amount();
+
+        foreach ($this->claim->additionalAmounts() as $i => $item) {
+            if ($item instanceof AdditionalClaimAmount) {
+                $amount += $item->amount();
+            } else {
+                $amount -= $item->amount();
+            }
+        }
+
+        return $this->percentsAmount() + $amount;
     }
 
     /**
