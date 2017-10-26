@@ -10,7 +10,7 @@ use Tests\TestCase;
 class CalculateClaimPercentsTest extends TestCase
 {
     /**
-     * @dataProvider claimAmounts
+     * @dataProvider claimAmountsProvider
      *
      * @param $amount // Сумма займа
      * @param $borrow // Дата выдачи
@@ -92,18 +92,43 @@ class CalculateClaimPercentsTest extends TestCase
 
     function test_calculate_claim_percents_with_additional_claimed_and_returned_money()
     {
-        $claim = new Claim(50000, Carbon::parse('2016-10-26'), Carbon::parse('2017-10-26'), 2);
+        $claim = new Claim(100000, Carbon::parse('2016-10-26'), Carbon::parse('2017-10-26'), 2);
 
-        $claim->addClaimedMoney(Carbon::parse('2017-02-26'), 50000);
-        $claim->addReturnedMoney(Carbon::parse('2017-06-26'), 50000);
+        $claim->addReturnedMoney(Carbon::parse('2017-01-26'), 50000);
+        $claim->addClaimedMoney(Carbon::parse('2017-04-26'), 60000);
+
+        // 11.26 2000
+        // 12.26 2000
+        // 01.26 2000
+        // 02.26 1000
+        // 03.26 1000
+        // 04.26 1000
+        // 05.26 2200
+        // 06.26 2200
+        // 06.26 2200
+        // 06.26 2200
+        // 06.26 2200
+        // 06.26 2200
 
         $calculator = new ClaimPercentsCalculator($claim);
 
-        $this->assertEquals(16000, $calculator->percentsAmount());
-        $this->assertEquals(66000, $calculator->totalAmount());
+        $this->assertEquals(22200, $calculator->percentsAmount());
+        $this->assertEquals(132200, $calculator->totalAmount());
     }
 
-    function claimAmounts()
+    function test_calculate_claim_percents_with_additional_claimed_money_2()
+    {
+        $claim = new Claim(50000, Carbon::parse('2016-10-26'), Carbon::parse('2017-10-26'), 2);
+
+        $claim->addClaimedMoney(Carbon::parse('2017-04-26'), 50000);
+
+        $calculator = new ClaimPercentsCalculator($claim);
+
+        $this->assertEquals(18000, $calculator->percentsAmount());
+        $this->assertEquals(118000, $calculator->totalAmount());
+    }
+
+    function claimAmountsProvider()
     {
         return [
             [
