@@ -3,6 +3,7 @@
 namespace Tests\Unit\Modules\Billing\Entities;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Module\Billing\Entities\Invoice;
 use Module\Billing\Entities\Wallet;
 use Tests\TestCase;
 
@@ -22,7 +23,7 @@ class WalletTest extends TestCase
     }
 
     /** @test */
-    function can_not_deposite_money_to_unsaved_wallet()
+    function can_not_deposit_money_to_unsaved_wallet()
     {
         $wallet = factory(Wallet::class)->states('zero')->make();
 
@@ -34,5 +35,26 @@ class WalletTest extends TestCase
         }
 
         $this->fail('Положили денег на несохраненный кошелек');
+    }
+
+    /** @test */
+    function can_make_an_invoice()
+    {
+        $wallet = factory(Wallet::class)->states('zero')->create();
+
+        $invoice = $wallet->createInvoice(1234.56);
+
+        $this->assertTrue($invoice instanceof Invoice);
+        $this->assertEquals($invoice->amount, 1234.56);
+    }
+
+    /** @test */
+    function has_many_invoices()
+    {
+        $wallet = factory(Wallet::class)->states('zero')->create();
+
+        $invoices = factory(Invoice::class, 3)->create(['wallet_id' => $wallet->id]);
+
+        $this->assertEquals(3, $wallet->invoices->count());
     }
 }
