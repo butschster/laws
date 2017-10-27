@@ -26,6 +26,16 @@ class BalanceTransaction extends Model
         return static::create($params);
     }
 
+    /**
+     * @return static
+     */
+    public static function createOutflow($params)
+    {
+        $params = array_merge($params, ['inflow' => false]);
+
+        return static::create($params);
+    }
+
     public function isInflow()
     {
         return (boolean)$this->inflow;

@@ -2,13 +2,10 @@
 
 namespace Tests\Unit\Modules\Billing\Entities;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Billing\Entities\Balance;
 use Module\Billing\Entities\BalanceTransaction;
-use Module\Billing\Entities\Invoice;
-use Module\Billing\Entities\InvoiceStatus;
-use Module\Billing\Entities\Wallet;
-use Module\Billing\Exceptions\WrongInvoiceStatusException;
 use Tests\TestCase;
 
 class BalanceTransactionTest extends TestCase
@@ -19,7 +16,7 @@ class BalanceTransactionTest extends TestCase
     function transactions_increase_balance()
     {
         $balance = new Balance;
-        $balance->setState(100);
+        $balance->setState(100, Carbon::parse('-1 day'));
         $this->assertEquals(100, $balance->total());
 
         $transaction = BalanceTransaction::createInflow([
@@ -28,10 +25,28 @@ class BalanceTransactionTest extends TestCase
             'transactionable_id' => 1,
         ]);
 
-        dd($transaction);
-
         $this->assertTrue($transaction instanceof BalanceTransaction);
         $this->assertTrue($transaction->isInflow());
+
         $this->assertEquals(299.22, $balance->total());
+    }
+
+    /** @test */
+    function transactions_decrease_balance()
+    {
+        $balance = new Balance;
+        $balance->setState(100, Carbon::parse('-1 day'));
+        $this->assertEquals(100, $balance->total());
+
+        $transaction = BalanceTransaction::createOutflow([
+            'amount' => 50,
+            'transactionable_type' => 'SomeTransactionObject',
+            'transactionable_id' => 1,
+        ]);
+
+        $this->assertTrue($transaction instanceof BalanceTransaction);
+        $this->assertFalse($transaction->isInflow());
+
+        $this->assertEquals(50.00, $balance->total());
     }
 }

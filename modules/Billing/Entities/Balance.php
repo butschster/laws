@@ -9,7 +9,7 @@ class Balance
     public function total()
     {
         return BalanceState::where('active_at', '<=', Carbon::now())
-            ->orderBy('active_at')
+            ->latest('active_at')
             ->take(1)
             ->first()
             ->amount;
@@ -23,5 +23,18 @@ class Balance
             'amount' => $amount,
             'active_at' => $date,
         ]);
+    }
+
+    public function increase(BalanceTransaction $transaction)
+    {
+        $currentBalance = $this->total();
+        return $this->setState($currentBalance + $transaction->amount);
+    }
+
+    public function decrease(BalanceTransaction $transaction)
+    {
+        $currentBalance = $this->total();
+
+        return $this->setState($currentBalance - $transaction->amount);
     }
 }
