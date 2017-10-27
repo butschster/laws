@@ -15,7 +15,7 @@ class CreateBalanceStatesTable extends Migration
     {
         Schema::create('balance_states', function (Blueprint $table) {
             $table->increments('id');
-            $table->dateTime('active_at')->unique();
+            $table->dateTime('active_at');
             $table->decimal('amount', 10,2);
             $table->timestamps();
         });

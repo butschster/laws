@@ -9,7 +9,7 @@ class Balance
     public function total()
     {
         return BalanceState::where('active_at', '<=', Carbon::now())
-            ->latest('active_at')
+            ->latest('id')
             ->take(1)
             ->first()
             ->amount;
