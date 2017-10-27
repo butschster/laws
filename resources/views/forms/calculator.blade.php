@@ -105,17 +105,40 @@
             </div>
         </div>
 
-        <div class="alert alert-info mt-4" v-if="totalAmount > 0">
-            Всего по процентам: <span v-text="totalPercentsAmount"></span><br/>
-            Итого: <span v-text="totalAmount"></span><br/>
+        <div class="card border-light mb-4" v-if="totalAmount > 0">
+            <div class="card-header">Расчеты</div>
+            <table class="table" v-if="summary.length">
+                <thead>
+                <tr>
+                    <th scope="col">Дата</th>
+                    <th scope="col" width="200px" class="text-right">Сумма</th>
+                    <th scope="col" width="100px" class="text-right">Проценты</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <table-summary v-for="row in summary" :data="row"></table-summary>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th></th>
+                        <th class="text-right">Всего по процентам: </th>
+                        <th class="text-right"><span v-text="totalPercentsAmount"></span></th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th class="text-right">Итого: </th>
+                        <th class="text-right"><span v-text="totalAmount"></span></th>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
+
 
         <button type="submit" class="btn btn-lg btn-primary" @click="send">
             Расчитать
         </button>
     </div>
 </script>
-
 <script type="text/x-template" id="percents-form-template">
     <div>
         <div class="form-group">
@@ -148,8 +171,38 @@
     </div>
 </script>
 
+<script type="text/x-template" id="table-summary-template">
+    <tr>
+        <th v-text="date"></th>
+        <td v-text="amount" class="text-right"></td>
+        <td v-text="percents" class="text-right"></td>
+    </tr>
+</script>
+
 @push('scripts')
     <script type="text/javascript">
+
+        Vue.component('table-summary', {
+            props: {
+                data: {
+                    required: true,
+                    type: Object
+                }
+            },
+            template: '#table-summary-template',
+            computed: {
+                date() {
+                    return moment(this.data.start_date.date).format('DD.MM.YYYY');
+                },
+                amount() {
+                    return this.data.amount.toMoney();
+                },
+                percents() {
+                    return this.data.calculated_percents.toMoney();
+                }
+            }
+        });
+
         Vue.component('percents-form', {
             props: {
                 'form-key': {
@@ -191,7 +244,8 @@
                     },
 
                     totalPercentsAmount: 0,
-                    totalAmount: 0
+                    totalAmount: 0,
+                    summary: []
                 }
             },
             mounted() {
@@ -233,8 +287,9 @@
                 send() {
                     axios.post('/claim-calculator', this.data).then(response => {
 
-                        this.totalAmount = response.data.total_amount;
-                        this.totalPercentsAmount = response.data.total_percents;
+                        this.totalAmount = response.data.amount_with_percents;
+                        this.totalPercentsAmount = response.data.percents;
+                        this.summary = response.data.summary;
 
                     })
                 }

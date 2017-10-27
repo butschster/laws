@@ -26,8 +26,10 @@ class CalculateClaimPercentsTest extends TestCase
 
         $calculator = new ClaimPercentsCalculator($claim);
 
-        $this->assertEquals($totalPercents, $calculator->percentsAmount());
-        $this->assertEquals($totalAmount, $calculator->totalAmount());
+        $result = $calculator->calculate();
+
+        $this->assertEquals($totalPercents, $result->percents());
+        $this->assertEquals($totalAmount, $result->amountWithPercents());
     }
 
     function test_calculate_claim_percents_with_returned_money()
@@ -56,8 +58,10 @@ class CalculateClaimPercentsTest extends TestCase
 
         $calculator = new ClaimPercentsCalculator($claim);
 
-        $this->assertEquals(92000, $calculator->percentsAmount());
-        $this->assertEquals(152000, $calculator->totalAmount());
+        $result = $calculator->calculate();
+
+        $this->assertEquals(92000, $result->percents());
+        $this->assertEquals(152000, $result->amountWithPercents());
     }
 
     function test_calculate_claim_percents_with_additional_claimed_money()
@@ -85,9 +89,10 @@ class CalculateClaimPercentsTest extends TestCase
         // 01.01.18 Должны вернуть 148 000 процентов и 100 000 займа
 
         $calculator = new ClaimPercentsCalculator($claim);
+        $result = $calculator->calculate();
 
-        $this->assertEquals(148000, $calculator->percentsAmount());
-        $this->assertEquals(288000, $calculator->totalAmount());
+        $this->assertEquals(148000, $result->percents());
+        $this->assertEquals(288000, $result->amountWithPercents());
     }
 
     function test_calculate_claim_percents_with_additional_claimed_and_returned_money()
@@ -111,9 +116,25 @@ class CalculateClaimPercentsTest extends TestCase
         // 06.26 2200
 
         $calculator = new ClaimPercentsCalculator($claim);
+        $result = $calculator->calculate();
 
-        $this->assertEquals(22200, $calculator->percentsAmount());
-        $this->assertEquals(132200, $calculator->totalAmount());
+        $this->assertEquals(22200, $result->percents());
+        $this->assertEquals(132200, $result->amountWithPercents());
+    }
+
+    function test_calculate_claim_percents_with_additional_claimed_and_returned_money_2()
+    {
+        $claim = new Claim(100000, Carbon::parse('2016-07-20'), Carbon::parse('2017-10-27'), 5);
+
+        $claim->addClaimedMoney(Carbon::parse('2017-07-23'), 30000);
+        $claim->addReturnedMoney(Carbon::parse('2016-09-20'), 20000);
+        $claim->addReturnedMoney(Carbon::parse('2016-12-25'), 20000);
+
+        $calculator = new ClaimPercentsCalculator($claim);
+        $result = $calculator->calculate();
+
+        $this->assertEquals(57451.62, $result->percents());
+        $this->assertEquals(147451.62, $result->amountWithPercents());
     }
 
     function test_calculate_claim_percents_with_additional_claimed_money_2()
@@ -123,9 +144,10 @@ class CalculateClaimPercentsTest extends TestCase
         $claim->addClaimedMoney(Carbon::parse('2017-04-26'), 50000);
 
         $calculator = new ClaimPercentsCalculator($claim);
+        $result = $calculator->calculate();
 
-        $this->assertEquals(18000, $calculator->percentsAmount());
-        $this->assertEquals(118000, $calculator->totalAmount());
+        $this->assertEquals(18000, $result->percents());
+        $this->assertEquals(118000, $result->amountWithPercents());
     }
 
     function claimAmountsProvider()

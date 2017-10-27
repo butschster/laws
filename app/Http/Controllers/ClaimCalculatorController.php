@@ -13,7 +13,7 @@ class ClaimCalculatorController extends Controller
      *
      * @return array
      */
-    public function calculate(Request $request)
+    public function calculate(Request $request): array
     {
         $data = $request->validate([
             'amount' => 'required|numeric|min:0',
@@ -60,9 +60,6 @@ class ClaimCalculatorController extends Controller
             }
         }
 
-        return [
-            'total_percents' => $claim->calculateReturnPercentsAmount(),
-            'total_amount' => $claim->calculateReturnAmount()
-        ];
+        return $claim->calculate()->toArray();
     }
 }

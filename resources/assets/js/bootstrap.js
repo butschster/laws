@@ -66,3 +66,5 @@ if (token) {
 //     broadcaster: 'socket.io',
 //     host: window.settings.config.websocket.host
 // });
+
+require('./libs/number');

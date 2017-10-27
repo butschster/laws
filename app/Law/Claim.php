@@ -3,6 +3,7 @@
 namespace App\Law;
 
 use App\Law\Calculator\ClaimPercentsCalculator;
+use App\Law\Calculator\Result;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -136,7 +137,7 @@ class Claim
     {
         return $this->additionalAmounts->sortBy(function ($amount) {
             return $amount->date();
-        });
+        })->values();
     }
 
     /**
@@ -190,25 +191,18 @@ class Claim
     }
 
     /**
-     * Получение суммы для возврата с учетом процентов
+     * Получение расчитанной суммы процентов по займу
      *
-     * @return float
+     * @return Result
      */
-    public function calculateReturnAmount(): float
+    public function calculate(): Result
     {
-        return $this->getCalculator()->totalAmount();
+        return $this->getCalculator()->calculate();
     }
 
     /**
-     * Получение суммы возвращаемой по процентам
-     *
-     * @return float
+     * @return ClaimPercentsCalculator
      */
-    public function calculateReturnPercentsAmount(): float
-    {
-        return $this->getCalculator()->percentsAmount();
-    }
-
     protected function getCalculator(): ClaimPercentsCalculator
     {
         return new ClaimPercentsCalculator($this);
