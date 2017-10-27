@@ -1,8 +1,9 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Calculator;
 
 use App\Law\Calculator\ClaimPercentsCalculator;
+use App\Law\Calculator\Result;
 use App\Law\Claim;
 use Carbon\Carbon;
 use Tests\TestCase;
@@ -148,6 +149,30 @@ class CalculateClaimPercentsTest extends TestCase
 
         $this->assertEquals(18000, $result->percents());
         $this->assertEquals(118000, $result->amountWithPercents());
+    }
+
+    function test_calculate_result()
+    {
+        $claim = new Claim(50000, Carbon::parse('2016-10-26'), Carbon::parse('2017-10-26'), 2);
+
+        $result = $claim->calculate();
+
+        $this->assertInstanceOf(Result::class, $result);
+
+        $this->assertEquals([
+            'amount' => 50000,
+            'percents' => 12000,
+            'amount_with_percents' => 62000,
+            'summary' => [
+                [
+                    'amount' => 50000,
+                    'percents' => 2,
+                    'calculated_percents' => 12000,
+                    'start_date' => '2016-10-26',
+                    'end_date' => '2017-10-26'
+                ]
+            ]
+        ], $result->toArray());
     }
 
     function claimAmountsProvider()

@@ -4,10 +4,6 @@ namespace App\Law\Calculator;
 
 use App\Exceptions\ClaimPercentsCalculator as ClaimPercentsCalculatorException;
 use App\Law\AdditionalClaimAmount;
-use App\Law\Calculator\Strategies\Daily;
-use App\Law\Calculator\Strategies\Monthly;
-use App\Law\Calculator\Strategies\Weekly;
-use App\Law\Calculator\Strategies\Yearly;
 use App\Law\Claim;
 use App\Law\ReturnedClaimAmount;
 use Carbon\Carbon;
@@ -101,8 +97,6 @@ class ClaimPercentsCalculator
      */
     public function calculate(): Result
     {
-        $percents = $this->calculatePercents();
-
         $amount = $this->claim->amount()->amount();
 
         foreach ($this->claim->additionalAmounts() as $i => $item) {
@@ -113,7 +107,7 @@ class ClaimPercentsCalculator
             }
         }
 
-        return new Result($amount, $percents, $this->summary);
+        return new Result($amount, $this->calculatePercents(), $this->summary);
     }
 
     /**
@@ -129,31 +123,27 @@ class ClaimPercentsCalculator
      */
     protected function getStrategy(float $amount, float $percents, Carbon $startDate, Carbon $endDate): float
     {
-        $interval = $this->claim->interval();
+        $strategyClass = $this->makeStrategyClass();
 
-        switch ($interval) {
-            case Claim::DAILY:
-                $strategy = new Daily($amount, $startDate, $endDate, $percents);
-                break;
-            case Claim::WEEKLY:
-                $strategy = new Weekly($amount, $startDate, $endDate, $percents);
-                break;
-            case Claim::MONTHLY:
-                $strategy = new Monthly($amount, $startDate, $endDate, $percents);
-                break;
-            case Claim::YEARLY:
-                $strategy = new Yearly($amount, $startDate, $endDate, $percents);
-                break;
-            default:
-
-                throw new ClaimPercentsCalculatorException('Strategy not found');
-
+        if ( !class_exists($strategyClass)) {
+            throw new ClaimPercentsCalculatorException("Strategy class [{$strategyClass}] not found");
         }
+
+        /** @var \App\Contracts\Law\Calculator\Strategy $strategy */
+        $strategy = new $strategyClass($amount, $startDate, $endDate, $percents);
 
         $total = $strategy->calculate();
 
         $this->summary[] = new Summary($amount, $percents, $total, $startDate, $endDate);
 
         return $total;
+    }
+
+    /**
+     * @return string
+     */
+    protected function makeStrategyClass(): string
+    {
+        return 'App\\Law\\Calculator\\Strategies\\'.ucfirst($this->claim->interval());
     }
 }

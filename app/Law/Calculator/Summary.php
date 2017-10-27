@@ -60,8 +60,8 @@ class Summary implements Arrayable
             'amount' => $this->amount,
             'percents' => $this->percents,
             'calculated_percents' => $this->calculatedPercents,
-            'start_date' => $this->startDate,
-            'end_date' => $this->endDate,
+            'start_date' => $this->startDate->toDateString(),
+            'end_date' => $this->endDate->toDateString(),
         ];
     }
 }

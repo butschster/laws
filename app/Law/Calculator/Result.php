@@ -78,7 +78,7 @@ class Result implements Arrayable
             'amount' => $this->amount,
             'percents' => $this->percents,
             'amount_with_percents' => $this->amountWithPercents(),
-            'summary' => $this->summary,
+            'summary' => $this->summary->toArray(),
         ];
     }
 }

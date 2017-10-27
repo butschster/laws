@@ -43,9 +43,8 @@ class Weekly extends Strategy
 
         $amount = 0;
 
-
         if ($endOfLastWeek->endOfWeek()->lt($this->to)) {
-            $amount += $this->calculateDaysAmount($endOfLastWeek->endOfMonth(), $lastWeek);
+            $amount += $this->calculateDaysAmount($endOfLastWeek->endOfWeek(), $lastWeek);
             $amount += $this->calculateDaysAmount($endOfLastWeek->subDay(1), $this->to);
         } else {
             $amount += $this->calculateDaysAmount($lastWeek, $this->to);
