@@ -78,13 +78,17 @@
                         <div class="col-sm-4 g-mb-30">
                             <!-- Payment History -->
                             <h3 class="h5 mb-3">История платежей</h3>
-                            <p class="mb-0">Last payment: June 07, 2017</p>
-                            <a class="g-font-size-13" href="#">View printable receipt</a>
-                            <!-- End Payment History -->
+                            @if($user->completed_transactions->count())
+                                @foreach($user->completed_transactions as $transaction)
+                                    <p class="mb-0">Сумма: {{ $transaction->amount }}</p>
+                                    <a class="g-font-size-13" href="#">Подробности платежа</a>
+                            @endforeach
+                        @endif
+                        <!-- End Payment History -->
                         </div>
 
                         <div class="col-sm-8 g-mb-30">
-                            <h3 class="h5 mb-3">Prime Members Enjoy</h3>
+                            <h3 class="h5 mb-3">Последине счета</h3>
 
                             <!-- Media -->
                             <div class="media g-mb-30">
@@ -94,10 +98,12 @@
                                   </span>
                                 </div>
                                 <div class="media-body">
-                                    <h4 class="h6 mb-1">Prime Rewards</h4>
-                                    <p class="mb-1">Cardmembers earn 3.2% Back at Unify.com with a Prime Credit Card.
-                                        Earn 1.7% rewards on your debit spending with Prime Reload.</p>
-                                    <a class="g-font-size-13" href="#">Read More</a>
+                                    <h4 class="h6 mb-1">Новые счета</h4>
+                                    <ul>
+                                        @foreach($user->invoices()->new()->get() as $newInvoice)
+                                            <li>#{{ $newInvoice->id }} на сумму: {{ $newInvoice->amount }}</li>
+                                        @endforeach
+                                    </ul>
                                 </div>
                             </div>
                             <!-- End Media -->
@@ -110,24 +116,12 @@
                                   </span>
                                 </div>
                                 <div class="media-body">
-                                    <h4 class="h6 mb-1">Prime Delivery</h4>
-                                    <p class="mb-1">Get FREE Two-Day Shipping on over 50 million items.</p>
-                                    <a class="g-font-size-13" href="#">Read More</a>
-                                </div>
-                            </div>
-                            <!-- End Media -->
-
-                            <!-- Media -->
-                            <div class="media g-mb-30">
-                                <div class="d-flex mr-4">
-                      <span class="u-icon-v2 u-icon-size--sm g-brd-gray-dark-v5 g-color-main rounded-circle">
-                        <i class="icon-communication-102 u-line-icon-pro"></i>
-                      </span>
-                                </div>
-                                <div class="media-body">
-                                    <h4 class="h6 mb-1">Prime Early Access</h4>
-                                    <p class="mb-1">30-minute early access to Lightning Deals on Amazon.</p>
-                                    <a class="g-font-size-13" href="#">Read More</a>
+                                    <h4 class="h6 mb-1">Отмененные счета</h4>
+                                    <ul>
+                                        @foreach($user->invoices()->canceled()->get() as $newInvoice)
+                                            <li>#{{ $newInvoice->id }} на сумму: {{ $newInvoice->amount }}</li>
+                                        @endforeach
+                                    </ul>
                                 </div>
                             </div>
                             <!-- End Media -->

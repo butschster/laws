@@ -26,6 +26,4 @@ class BalanceState extends Model
         'updated_at',
         'active_at'
     ];
-
-
 }

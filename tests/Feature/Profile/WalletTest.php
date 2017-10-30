@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Profile;
 
-use App\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Module\Billing\Entities\TransactionRobokassa;
 use Module\Billing\Entities\Wallet;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class WalletTest extends TestCase
 {
@@ -44,6 +44,19 @@ class WalletTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('123.45');
+    }
 
+    /** @test */
+    function user_can_see_last_completed_transactions()
+    {
+        $this->withoutExceptionHandling();
+        $transaction = factory(TransactionRobokassa::class)->states('completed')->create([
+            'amount' => '1234.56',
+        ]);
+
+        $response = $this->actingAs($transaction->user)->get(route('profile.wallet'));
+
+        $response->assertStatus(200);
+        $response->assertSee('1234.56');
     }
 }

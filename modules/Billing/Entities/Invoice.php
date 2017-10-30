@@ -37,8 +37,8 @@ class Invoice extends Model
 
 
     /**
-    * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-    */
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function wallet()
     {
         return $this->belongsTo(Wallet::class);
@@ -58,11 +58,11 @@ class Invoice extends Model
     }
 
     /**
-    * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-    */
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function status()
     {
-    	return $this->belongsTo(InvoiceStatus::class);
+        return $this->belongsTo(InvoiceStatus::class);
     }
 
     public function pay()
@@ -78,10 +78,30 @@ class Invoice extends Model
 
     protected function checkStatusForPay()
     {
-        if( $this->status->code == 'completed') {
+        if ($this->status->code == 'completed') {
             throw new WrongInvoiceStatusException();
         }
 
         return $this;
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeNew($query)
+    {
+        //TODO: Отрефакторить бы получение ID статуса
+        return $query->where('status_id', InvoiceStatus::where('code', InvoiceStatus::STATUS_NEW)->first()->id);
+    }
+
+    /**
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeCanceled($query)
+    {
+        //TODO: Отрефакторить бы получение ID статуса
+        return $query->where('status_id', InvoiceStatus::where('code', InvoiceStatus::STATUS_CANCELED)->first()->id);
     }
 }
