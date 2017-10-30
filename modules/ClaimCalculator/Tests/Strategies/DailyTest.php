@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Feature\Calculator\Strategies;
+namespace Module\ClaimCalculator\Tests\Strategies;
 
-use App\Law\Calculator\Strategies\Daily;
+use Module\ClaimCalculator\Strategies\Daily;
 use Tests\TestCase;
 
 class DailyTest extends TestCase

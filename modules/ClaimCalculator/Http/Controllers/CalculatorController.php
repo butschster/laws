@@ -1,19 +1,21 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace Module\ClaimCalculator\Http\Controllers;
 
-use Carbon\Carbon;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Module\ClaimCalculator\Http\Resources\Calculator as CalculatorResource;
 
-class ClaimCalculatorController extends Controller
+class CalculatorController extends Controller
 {
+
     /**
      * @param Request $request
      *
-     * @return array
+     * @return CalculatorResource
      */
-    public function calculate(Request $request): array
+    public function calculate(Request $request): CalculatorResource
     {
         $data = $request->validate([
             'amount' => 'required|numeric|min:0',
@@ -60,6 +62,6 @@ class ClaimCalculatorController extends Controller
             }
         }
 
-        return $claim->calculate()->toArray();
+        return new CalculatorResource($claim->calculate());
     }
 }

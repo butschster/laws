@@ -1,8 +1,8 @@
 <?php
 
-namespace Tests\Feature\Calculator\Strategies;
+namespace Module\ClaimCalculator\Tests\Strategies;
 
-use App\Law\Calculator\Strategies\Monthly;
+use Module\ClaimCalculator\Strategies\Monthly;
 use Carbon\Carbon;
 use Tests\TestCase;
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Law\Calculator;
+namespace Module\ClaimCalculator;
 
 use Carbon\Carbon;
-use Illuminate\Contracts\Support\Arrayable;
+use Module\ClaimCalculator\Contracts\Summary as SummaryContract;
 
-class Summary implements Arrayable
+class Summary implements SummaryContract
 {
 
     /**

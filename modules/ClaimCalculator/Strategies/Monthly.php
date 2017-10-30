@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Law\Calculator\Strategies;
+namespace Module\ClaimCalculator\Strategies;
 
 use Carbon\Carbon;
 

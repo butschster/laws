@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Law\Calculator;
+namespace Module\ClaimCalculator;
 
-use Illuminate\Contracts\Support\Arrayable;
-use Illuminate\Support\Collection;
+use Module\ClaimCalculator\Contracts\Result as ResultContract;
 
-class Result implements Arrayable
+class Result implements ResultContract
 {
 
     /**
@@ -19,7 +18,7 @@ class Result implements Arrayable
     private $percents;
 
     /**
-     * @var array|Summary[]
+     * @var SummaryCollection|Summary[]
      */
     private $summary = [];
 
@@ -32,7 +31,7 @@ class Result implements Arrayable
     {
         $this->amount = $amount;
         $this->percents = $percents;
-        $this->summary = collect($summary);
+        $this->summary = new SummaryCollection($summary);
     }
 
     /**
@@ -60,9 +59,9 @@ class Result implements Arrayable
     }
 
     /**
-     * @return Collection
+     * @return SummaryCollection
      */
-    public function summary(): Collection
+    public function summary(): SummaryCollection
     {
         return $this->summary;
     }

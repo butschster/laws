@@ -1,9 +1,9 @@
 <?php
 
-namespace Tests\Feature\Calculator;
+namespace Module\ClaimCalculator\Tests;
 
-use App\Law\Calculator\ClaimPercentsCalculator;
-use App\Law\Calculator\Result;
+use Module\ClaimCalculator\Calculator as ClaimPercentsCalculator;
+use Module\ClaimCalculator\Result;
 use App\Law\Claim;
 use Carbon\Carbon;
 use Tests\TestCase;

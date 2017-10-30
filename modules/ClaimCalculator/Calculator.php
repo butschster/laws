@@ -1,14 +1,17 @@
 <?php
 
-namespace App\Law\Calculator;
+namespace Module\ClaimCalculator;
 
-use App\Exceptions\ClaimPercentsCalculator as ClaimPercentsCalculatorException;
+use Module\ClaimCalculator\Contracts\Calculator as CalculatorContract;
+use Module\ClaimCalculator\Contracts\Result as ResultContract;
+use Module\ClaimCalculator\Contracts\Strategy;
+use Module\ClaimCalculator\Exceptions\ClaimPercentsCalculator as ClaimPercentsCalculatorException;
 use App\Law\AdditionalClaimAmount;
 use App\Law\Claim;
 use App\Law\ReturnedClaimAmount;
 use Carbon\Carbon;
 
-class ClaimPercentsCalculator
+class Calculator implements CalculatorContract
 {
 
     /**
@@ -93,9 +96,9 @@ class ClaimPercentsCalculator
     }
 
     /**
-     * @return Result
+     * @return ResultContract
      */
-    public function calculate(): Result
+    public function calculate(): ResultContract
     {
         $amount = $this->claim->amount()->amount();
 
@@ -129,7 +132,7 @@ class ClaimPercentsCalculator
             throw new ClaimPercentsCalculatorException("Strategy class [{$strategyClass}] not found");
         }
 
-        /** @var \App\Contracts\Law\Calculator\Strategy $strategy */
+        /** @var Strategy $strategy */
         $strategy = new $strategyClass($amount, $startDate, $endDate, $percents);
 
         $total = $strategy->calculate();
@@ -144,6 +147,6 @@ class ClaimPercentsCalculator
      */
     protected function makeStrategyClass(): string
     {
-        return 'App\\Law\\Calculator\\Strategies\\'.ucfirst($this->claim->interval());
+        return 'Module\\ClaimCalculator\\Strategies\\'.ucfirst($this->claim->interval());
     }
 }

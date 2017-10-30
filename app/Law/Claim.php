@@ -2,10 +2,11 @@
 
 namespace App\Law;
 
-use App\Law\Calculator\ClaimPercentsCalculator;
-use App\Law\Calculator\Result;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Module\ClaimCalculator\Calculator;
+use Module\ClaimCalculator\ClaimPercentsCalculator;
+use Module\ClaimCalculator\Contracts\Result;
 
 /**
  * Займ
@@ -201,10 +202,10 @@ class Claim
     }
 
     /**
-     * @return ClaimPercentsCalculator
+     * @return Calculator
      */
-    protected function getCalculator(): ClaimPercentsCalculator
+    protected function getCalculator(): Calculator
     {
-        return new ClaimPercentsCalculator($this);
+        return new Calculator($this);
     }
 }

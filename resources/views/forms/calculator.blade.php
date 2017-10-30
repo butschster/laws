@@ -287,9 +287,9 @@
                 send() {
                     axios.post('/claim-calculator', this.data).then(response => {
 
-                        this.totalAmount = response.data.amount_with_percents;
-                        this.totalPercentsAmount = response.data.percents;
-                        this.summary = response.data.summary;
+                        this.totalAmount = response.data.data.amount_with_percents;
+                        this.totalPercentsAmount = response.data.data.percents;
+                        this.summary = response.data.data.summary;
 
                     })
                 }

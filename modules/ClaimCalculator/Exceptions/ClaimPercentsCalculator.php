@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exceptions;
+namespace Module\ClaimCalculator\Exceptions;
 
 class ClaimPercentsCalculator extends \Exception
 {

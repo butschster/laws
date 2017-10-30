@@ -15,9 +15,6 @@ use Illuminate\Validation\Rule;
 
 Route::get('/', function () {
     return view('welcome');
-});
-
-Route::post('claim-calculator', 'ClaimCalculatorController@calculate');
 
 Route::post('store-document', function (\Illuminate\Http\Request $request, \PhpOffice\PhpWord\PhpWord $phpWord) {
 
