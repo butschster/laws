@@ -8,18 +8,19 @@ use PhpOffice\PhpWord\Element\AbstractContainer;
 class ReturnedClaimAmount extends Amount
 {
     /**
-     * @var Carbon|null
+     * @var Carbon
      */
-    protected $returnDate;
+    protected $date;
 
     /**
      * @param float $amount
-     * @param Carbon|null $returnDate
+     * @param Carbon $date
      */
-    public function __construct(float $amount = 0, Carbon $returnDate = null)
+    public function __construct(float $amount = 0, Carbon $date)
     {
         parent::__construct($amount);
-        $this->returnDate = $returnDate;
+
+        $this->date = $date;
     }
 
     /**
@@ -34,18 +35,10 @@ class ReturnedClaimAmount extends Amount
     }
 
     /**
-     * @return bool
+     * @return Carbon
      */
-    public function hasReturnDate(): bool
+    public function date()
     {
-        return !is_null($this->returnDate);
-    }
-
-    /**
-     * @return Carbon|null
-     */
-    public function returnDate()
-    {
-        return $this->returnDate;
+        return $this->date;
     }
 }

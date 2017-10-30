@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Law\Calculator\Strategies;
+namespace Module\ClaimCalculator\Strategies;
 
-use App\Contracts\Law\Calculator\Strategy as StrategyContract;
+use Module\ClaimCalculator\Contracts\Strategy as StrategyContract;
 use Carbon\Carbon;
 
 abstract class Strategy implements StrategyContract

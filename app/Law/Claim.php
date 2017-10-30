@@ -3,6 +3,10 @@
 namespace App\Law;
 
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
+use Module\ClaimCalculator\Calculator;
+use Module\ClaimCalculator\ClaimPercentsCalculator;
+use Module\ClaimCalculator\Contracts\Result;
 
 /**
  * Займ
@@ -42,16 +46,16 @@ class Claim
     private $interval;
 
     /**
-     * @var array|ReturnedClaimAmount[]
+     * @var Collection|AdditionalClaimAmount[]|ReturnedClaimAmount
      */
-    private $returnedAmount = [];
+    private $additionalAmounts = [];
 
     /**
-     * @param float $amount
-     * @param Carbon $borrowingDate
-     * @param Carbon $returnDate
-     * @param int $percents
-     * @param string $interval
+     * @param float $amount Сумма займа
+     * @param Carbon $borrowingDate Дата выдачи
+     * @param Carbon $returnDate Дата возврата
+     * @param int $percents Процент
+     * @param string $interval Период начисления
      */
     public function __construct(float $amount = 0, Carbon $borrowingDate, Carbon $returnDate, int $percents = 0, string $interval = self::MONTHLY)
     {
@@ -61,9 +65,13 @@ class Claim
         $this->returnDate = $returnDate;
         $this->percents = $percents;
         $this->interval = $interval;
+
+        $this->additionalAmounts = new Collection();
     }
 
     /**
+     * Получение суммы займа
+     *
      * @return ClaimAmount
      */
     public function amount(): ClaimAmount
@@ -72,50 +80,70 @@ class Claim
     }
 
     /**
-     * @param Carbon $date
-     * @param float $amount
+     * Добавление факта возврата денег
+     *
+     * @param Carbon $date Дата возврата
+     * @param float $amount Сумма
      *
      * @return $this
      */
     public function addReturnedMoney(Carbon $date, float $amount)
     {
-        $this->returnedAmount[] = new ReturnedClaimAmount($amount, $date);
+        $this->additionalAmounts->push(new ReturnedClaimAmount($amount, $date));
 
         return $this;
     }
 
     /**
-     * @return ClaimAmount
+     * Получение списка фактов возвращения денег
+     *
+     * @return Collection|ReturnedClaimAmount[]
      */
-    public function residualAmount()
+    public function returnedAmounts(): Collection
     {
-        $current = clone $this->amount;
-
-        foreach ($this->returnedAmounts() as $amount) {
-            $current->sub($amount);
-        }
-
-        return $current;
+        return $this->additionalAmounts()->filter(function ($amount) {
+            return $amount instanceof ReturnedClaimAmount;
+        });
     }
 
     /**
-     * @return array|ReturnedClaimAmount[]
+     * Добавление факта дополнительного займа денег
+     *
+     * @param Carbon $date Дата взятия
+     * @param float $amount Сумма
+     *
+     * @return $this
      */
-    public function returnedAmounts(): array
+    public function addClaimedMoney(Carbon $date, float $amount)
     {
-        return $this->returnedAmount;
+        $this->additionalAmounts->push(new AdditionalClaimAmount($amount, $date));
+
+        return $this;
     }
 
     /**
-     * @return bool
+     * @return AdditionalClaimAmount[]|Collection
      */
-    public function hasReturnedAmounts(): bool
+    public function claimedAmounts(): Collection
     {
-        return count($this->returnedAmount) > 0;
+        return $this->additionalAmounts()->filter(function ($amount) {
+            return $amount instanceof AdditionalClaimAmount;
+        });
     }
 
+    /**
+     * @return AdditionalClaimAmount[]|ReturnedClaimAmount|Collection
+     */
+    public function additionalAmounts(): Collection
+    {
+        return $this->additionalAmounts->sortBy(function ($amount) {
+            return $amount->date();
+        })->values();
+    }
 
     /**
+     * Проверка, является ли займ процентным
+     *
      * @return bool
      */
     public function hasPercents(): bool
@@ -124,6 +152,8 @@ class Claim
     }
 
     /**
+     * Получение процентной ставки
+     *
      * @return int
      */
     public function percents(): int
@@ -132,6 +162,8 @@ class Claim
     }
 
     /**
+     * Получение даты выдачи займа
+     *
      * @return Carbon
      */
     public function borrowingDate(): Carbon
@@ -140,6 +172,8 @@ class Claim
     }
 
     /**
+     * Получение даты возврата
+     *
      * @return Carbon
      */
     public function returnDate(): Carbon
@@ -148,10 +182,30 @@ class Claim
     }
 
     /**
+     * Получение периода начисления
+     *
      * @return string
      */
     public function interval(): string
     {
         return $this->interval;
+    }
+
+    /**
+     * Получение расчитанной суммы процентов по займу
+     *
+     * @return Result
+     */
+    public function calculate(): Result
+    {
+        return $this->getCalculator()->calculate();
+    }
+
+    /**
+     * @return Calculator
+     */
+    protected function getCalculator(): Calculator
+    {
+        return new Calculator($this);
     }
 }

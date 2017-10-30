@@ -17,6 +17,6 @@ mix
         'popper.js': ['Popper', 'window.Popper']
     })
     .js('resources/assets/js/app.js', 'public/js')
-    .extract(['vue', 'lodash', 'axios', 'jquery', 'socket.io-client', 'popper.js'], 'public/js/vendors.js')
+    .extract(['vue', 'lodash', 'axios', 'jquery', 'socket.io-client', 'popper.js', 'moment'], 'public/js/vendors.js')
     .sass('resources/assets/sass/app.scss', 'public/css')
     .version();
