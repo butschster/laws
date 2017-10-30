@@ -103,7 +103,7 @@ abstract class Module extends ServiceProvider implements ModuleInterface
      */
     public function boot()
     {
-        //$this->loadTranslationsFrom(modules_path("{$this->name}/resources/lang"), $this->name);
+        $this->loadTranslationsFrom(modules_path("{$this->name}/resources/lang"), $this->name);
         $this->loadViewsFrom(modules_path("{$this->name}/resources/views"), $this->name);
 
         $this->mapRoutes();

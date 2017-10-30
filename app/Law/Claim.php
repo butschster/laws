@@ -2,8 +2,11 @@
 
 namespace App\Law;
 
-use App\Law\Calculator\ClaimPercentsCalculator;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
+use Module\ClaimCalculator\Calculator;
+use Module\ClaimCalculator\ClaimPercentsCalculator;
+use Module\ClaimCalculator\Contracts\Result;
 
 /**
  * Займ
@@ -43,9 +46,9 @@ class Claim
     private $interval;
 
     /**
-     * @var array|ReturnedClaimAmount[]
+     * @var Collection|AdditionalClaimAmount[]|ReturnedClaimAmount
      */
-    private $returnedAmount = [];
+    private $additionalAmounts = [];
 
     /**
      * @param float $amount Сумма займа
@@ -62,6 +65,8 @@ class Claim
         $this->returnDate = $returnDate;
         $this->percents = $percents;
         $this->interval = $interval;
+
+        $this->additionalAmounts = new Collection();
     }
 
     /**
@@ -84,7 +89,7 @@ class Claim
      */
     public function addReturnedMoney(Carbon $date, float $amount)
     {
-        $this->returnedAmount[] = new ReturnedClaimAmount($amount, $date);
+        $this->additionalAmounts->push(new ReturnedClaimAmount($amount, $date));
 
         return $this;
     }
@@ -92,21 +97,48 @@ class Claim
     /**
      * Получение списка фактов возвращения денег
      *
-     * @return array|ReturnedClaimAmount[]
+     * @return Collection|ReturnedClaimAmount[]
      */
-    public function returnedAmounts(): array
+    public function returnedAmounts(): Collection
     {
-        return $this->returnedAmount;
+        return $this->additionalAmounts()->filter(function ($amount) {
+            return $amount instanceof ReturnedClaimAmount;
+        });
     }
 
     /**
-     * Проверка, есть ли возвращенные деньгие
+     * Добавление факта дополнительного займа денег
      *
-     * @return bool
+     * @param Carbon $date Дата взятия
+     * @param float $amount Сумма
+     *
+     * @return $this
      */
-    public function hasReturnedAmounts(): bool
+    public function addClaimedMoney(Carbon $date, float $amount)
     {
-        return count($this->returnedAmount) > 0;
+        $this->additionalAmounts->push(new AdditionalClaimAmount($amount, $date));
+
+        return $this;
+    }
+
+    /**
+     * @return AdditionalClaimAmount[]|Collection
+     */
+    public function claimedAmounts(): Collection
+    {
+        return $this->additionalAmounts()->filter(function ($amount) {
+            return $amount instanceof AdditionalClaimAmount;
+        });
+    }
+
+    /**
+     * @return AdditionalClaimAmount[]|ReturnedClaimAmount|Collection
+     */
+    public function additionalAmounts(): Collection
+    {
+        return $this->additionalAmounts->sortBy(function ($amount) {
+            return $amount->date();
+        })->values();
     }
 
     /**
@@ -160,27 +192,20 @@ class Claim
     }
 
     /**
-     * Получение суммы для возврата с учетом процентов
+     * Получение расчитанной суммы процентов по займу
      *
-     * @return float
+     * @return Result
      */
-    public function calculateReturnAmount(): float
+    public function calculate(): Result
     {
-        return $this->getCalculator()->totalAmount();
+        return $this->getCalculator()->calculate();
     }
 
     /**
-     * Получение суммы возвращаемой по процентам
-     *
-     * @return float
+     * @return Calculator
      */
-    public function calculateReturnPercentsAmount(): float
+    protected function getCalculator(): Calculator
     {
-        return $this->getCalculator()->percentsAmount();
-    }
-
-    protected function getCalculator(): ClaimPercentsCalculator
-    {
-        return new ClaimPercentsCalculator($this);
+        return new Calculator($this);
     }
 }
