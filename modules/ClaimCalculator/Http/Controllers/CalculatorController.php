@@ -3,6 +3,7 @@
 namespace Module\ClaimCalculator\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Law\Claim;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Module\ClaimCalculator\Http\Resources\Calculator as CalculatorResource;
@@ -21,21 +22,21 @@ class CalculatorController extends Controller
             'amount' => 'required|numeric|min:0',
             'date_of_borrowing' => 'required|date_format:d.m.Y',
             'date_of_return' => 'required|date_format:d.m.Y|after:date_of_borrowing',
-            'is_interest_bearing_loan' => 'boolean',
 
             // Процентная ставка
+            'is_interest_bearing_loan' => 'boolean',
             'interest_bearing_loan' => 'array',
-            'interest_bearing_loan.interval' => ['required_if:is_interest_bearing_loan,true', Rule::in(['daily', 'weekly', 'monthly', 'yearly'])],
+            'interest_bearing_loan.interval' => ['required_if:is_interest_bearing_loan,true', Rule::in([Claim::DAILY, Claim::WEEKLY, Claim::MONTHLY, Claim::YEARLY])],
             'interest_bearing_loan.percent' => 'required_if:is_interest_bearing_loan,true|numeric|min:0|max:100',
 
             // Частичное погашение займа
-            'has_returned_money' => 'boolean',
+            'has_returned_money' => 'required|boolean',
             'partly_returned_money' => 'array',
             'partly_returned_money.*.date' => 'required|date_format:d.m.Y|after:date_of_borrowing|before:date_of_return',
             'partly_returned_money.*.amount' => 'required|numeric|min:0',
 
             // Дополнительные займы
-            'has_claimed_money' => 'boolean',
+            'has_claimed_money' => 'required|boolean',
             'claimed_money' => 'array',
             'claimed_money.*.date' => 'required|date_format:d.m.Y|after:date_of_borrowing|before:date_of_return',
             'claimed_money.*.amount' => 'required|numeric|min:0',
@@ -50,7 +51,7 @@ class CalculatorController extends Controller
             array_get($data, 'interest_bearing_loan.interval')
         );
 
-        if ((bool)$data['has_claimed_money']) {
+        if ((bool) $data['has_claimed_money']) {
             foreach (array_get($data, 'claimed_money', []) as $row) {
                 $claim->addClaimedMoney(custom_date($row['date']), $row['amount']);
             }
