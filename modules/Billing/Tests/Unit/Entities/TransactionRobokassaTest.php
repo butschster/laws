@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Modules\Billing\Entities;
+namespace Module\Billing\Tests\Unit\Entities;
 
 use App\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,7 +14,7 @@ class TransactionRobokassaTest extends TestCase
     /** @test */
     function transaction_robokassa_belongs_to_user()
     {
-        $transaction = factory(TransactionRobokassa::class, 50)->create();
+        $transaction = factory(TransactionRobokassa::class)->create();
 
         $this->assertTrue($transaction->user instanceof User);
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Profile;
+namespace Module\Billing\Tests\Feature\Profile;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Billing\Entities\TransactionRobokassa;
@@ -14,7 +14,6 @@ class WalletTest extends TestCase
     /** @test */
     function guests_cannot_see_wallet_page()
     {
-//        $this->withoutExceptionHandling();
         $response = $this->get(route('profile.wallet'));
 
         $response->assertStatus(302);

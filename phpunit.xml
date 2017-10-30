@@ -9,6 +9,10 @@
          processIsolation="false"
          stopOnFailure="false">
     <testsuites>
+        <testsuite name="Billing">
+            <directory suffix="Test.php">./modules/Billing/tests</directory>
+        </testsuite>
+
         <testsuite name="ClaimCalculator">
             <directory suffix="Test.php">./modules/ClaimCalculator/tests</directory>
         </testsuite>

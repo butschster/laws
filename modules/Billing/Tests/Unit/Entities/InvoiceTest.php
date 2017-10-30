@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Modules\Billing\Entities;
+namespace Module\Billing\Tests\Unit\Entities;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Billing\Entities\Invoice;

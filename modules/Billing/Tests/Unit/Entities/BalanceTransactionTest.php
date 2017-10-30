@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Unit\Modules\Billing\Entities;
+namespace Module\Billing\Tests\Unit\Entities;
 
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
