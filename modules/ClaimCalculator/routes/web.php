@@ -2,4 +2,6 @@
 
 /** @var \Illuminate\Routing\Router $router */
 
-$router->post('claim-calculator', 'CalculatorController@calculate');
+$router
+    ->post('claim-calculator', 'CalculatorController@calculate')
+    ->name('claim-calculator');

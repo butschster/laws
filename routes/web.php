@@ -15,6 +15,7 @@ use Illuminate\Validation\Rule;
 
 Route::get('/', function () {
     return view('welcome');
+});
 
 Route::post('store-document', function (\Illuminate\Http\Request $request, \PhpOffice\PhpWord\PhpWord $phpWord) {
 

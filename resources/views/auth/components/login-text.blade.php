@@ -1,8 +1,6 @@
 <div class="mb-5">
-    <h1 class="h3 g-font-weight-600 mb-3">
-        Profitable contracts,<br>invoices &amp; payments for the best cases!</h1>
-    <p class="g-color-gray-dark-v5 g-font-size-12 text-uppercase">
-        Trusted by 31,000+ users globally</p>
+    <h1 class="h3 g-font-weight-600 mb-3">Profitable contracts,<br>invoices &amp; payments for the best cases!</h1>
+    <p class="g-color-gray-dark-v5 g-font-size-12 text-uppercase">Trusted by 31,000+ users globally</p>
 </div>
 
 <div class="row">
@@ -15,8 +13,7 @@
                     </span>
             </div>
             <div class="media-body align-self-center">
-                <p class="g-color-gray-dark-v5 mb-0">
-                    Reliable contracts, multifanctionality &amp; best usage of Unify template</p>
+                <p class="g-color-gray-dark-v5 mb-0">Reliable contracts, multifanctionality &amp; best usage of Unify template</p>
             </div>
         </div>
         <!-- End Icon Blocks -->
@@ -29,8 +26,7 @@
                     </span>
             </div>
             <div class="media-body align-self-center">
-                <p class="g-color-gray-dark-v5 mb-0">
-                    Secure &amp; integrated options to create individual &amp; business websites</p>
+                <p class="g-color-gray-dark-v5 mb-0">Secure &amp; integrated options to create individual &amp; business websites</p>
             </div>
         </div>
         <!-- End Icon Blocks -->
@@ -41,7 +37,6 @@
             in one package.
         </blockquote>
         <div class="media">
-            <img class="d-flex align-self-center rounded-circle g-width-40 g-height-40 mr-3" src="../../assets/img-temp/100x100/img12.jpg" alt="Image Description">
             <div class="media-body align-self-center">
                 <h4 class="h6 g-font-weight-600 g-mb-0">Alex Pottorf</h4>
                 <em class="g-color-gray-dark-v5 g-font-style-normal g-font-size-12">Web Developer</em>
