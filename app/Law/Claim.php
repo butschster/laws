@@ -2,10 +2,9 @@
 
 namespace App\Law;
 
+use App\FederalDistrict;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Module\ClaimCalculator\Calculator;
-use Module\ClaimCalculator\ClaimPercentsCalculator;
 use Module\ClaimCalculator\Contracts\Result;
 
 /**
@@ -198,14 +197,18 @@ class Claim
      */
     public function calculate(): Result
     {
-        return $this->getCalculator()->calculate();
+        return (new \Module\ClaimCalculator\Calculator($this))->calculate();
     }
 
     /**
-     * @return Calculator
+     * Получение расчитаной суммы процентов по ст.395
+     *
+     * @param FederalDistrict $district
+     *
+     * @return Result
      */
-    protected function getCalculator(): Calculator
+    public function calculate395(FederalDistrict $district): Result
     {
-        return new Calculator($this);
+        return (new \Module\FineCalculator\Calculator($this, $district))->calculate();
     }
 }

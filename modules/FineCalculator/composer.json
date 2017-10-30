@@ -1,0 +1,22 @@
+{
+  "name": "law/fine_calculator",
+  "description": "Калькулятор расчета процентов по займу",
+  "type": "module",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Pavel Buchnev",
+      "email": "butschster@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.0"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Module\\FineCalculator\\Providers\\AppServiceProvider"
+      ]
+    }
+  }
+}

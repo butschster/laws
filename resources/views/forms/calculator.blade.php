@@ -285,7 +285,7 @@
                 },
 
                 send() {
-                    this.$api.claim.calculate(this.data).then(response => {
+                    this.$api.claim.calculate395(this.data).then(response => {
 
                         this.totalAmount = response.data.data.amount_with_percents;
                         this.totalPercentsAmount = response.data.data.percents;

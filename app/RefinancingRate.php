@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class RefinancingRate extends Model
 {
+
+    /**
+     * @var array
+     */
     protected $fillable = ['rate', 'created_at'];
 
     /**
