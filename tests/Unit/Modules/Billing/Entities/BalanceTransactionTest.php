@@ -5,7 +5,6 @@ namespace Tests\Unit\Modules\Billing\Entities;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Module\Billing\Entities\Balance;
-use Module\Billing\Entities\BalanceState;
 use Module\Billing\Entities\BalanceTransaction;
 use Tests\TestCase;
 
