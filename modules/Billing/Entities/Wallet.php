@@ -2,6 +2,7 @@
 
 namespace Module\Billing\Entities;
 
+use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Module\Billing\Exceptions\WalletNotSavedException;
 
@@ -67,5 +68,13 @@ class Wallet extends Model
     public function invoices()
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    /**
+    * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+    */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
