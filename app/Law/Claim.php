@@ -102,7 +102,7 @@ class Claim
     {
         return $this->additionalAmounts()->filter(function ($amount) {
             return $amount instanceof ReturnedClaimAmount;
-        });
+        })->values();
     }
 
     /**
@@ -127,7 +127,7 @@ class Claim
     {
         return $this->additionalAmounts()->filter(function ($amount) {
             return $amount instanceof AdditionalClaimAmount;
-        });
+        })->values();
     }
 
     /**

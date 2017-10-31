@@ -4,7 +4,6 @@ namespace Module\FineCalculator\Http\Controllers;
 
 use App\FederalDistrict;
 use App\Http\Controllers\Controller;
-use App\Law\Claim;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Module\FineCalculator\Http\Resources\Calculator as CalculatorResource;
@@ -23,12 +22,7 @@ class CalculatorController extends Controller
             'amount' => 'required|numeric|min:0',
             'date_of_borrowing' => 'required|date_format:d.m.Y',
             'date_of_return' => 'required|date_format:d.m.Y|after:date_of_borrowing',
-
-            // Процентная ставка
-            'is_interest_bearing_loan' => 'boolean',
-            'interest_bearing_loan' => 'array',
-            'interest_bearing_loan.interval' => ['required_if:is_interest_bearing_loan,true', Rule::in([Claim::DAILY, Claim::WEEKLY, Claim::MONTHLY, Claim::YEARLY])],
-            'interest_bearing_loan.percent' => 'required_if:is_interest_bearing_loan,true|numeric|min:0|max:100',
+            'federal_district' => ['required', Rule::exists((new FederalDistrict())->getTable(), 'id')],
 
             // Частичное погашение займа
             'has_returned_money' => 'required|boolean',
@@ -43,16 +37,13 @@ class CalculatorController extends Controller
             'claimed_money.*.amount' => 'required|numeric|min:0',
         ], [], trans('claim.fields'));
 
-        $isPercent = (bool) $data['is_interest_bearing_loan'];
         $claim = new \App\Law\Claim(
             $data['amount'],
             custom_date($data['date_of_borrowing']),
-            custom_date($data['date_of_return']),
-            $isPercent ? array_get($data, 'interest_bearing_loan.percent') : 0,
-            array_get($data, 'interest_bearing_loan.interval')
+            custom_date($data['date_of_return'])
         );
 
-        if ((bool) $data['has_claimed_money']) {
+        if ((bool)$data['has_claimed_money']) {
             foreach (array_get($data, 'claimed_money', []) as $row) {
                 $claim->addClaimedMoney(custom_date($row['date']), $row['amount']);
             }
@@ -64,9 +55,10 @@ class CalculatorController extends Controller
             }
         }
 
-        $district = new FederalDistrict();
-        $district->id = 2;
-
-        return new CalculatorResource($claim->calculate395($district));
+        return new CalculatorResource(
+            $claim->calculate395(
+                FederalDistrict::find($data['federal_district'])
+            )
+        );
     }
 }

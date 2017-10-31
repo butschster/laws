@@ -113,7 +113,13 @@ class Interval implements Arrayable
      */
     public function calculate(): float
     {
-        return ($this->rate / 365 * $this->to->diffInDays($this->from) * $this->amount) / 100;
+        if ($this->to->lt(Carbon::parse('2016-03-24'))) {
+            $daysInTear = 360;
+        } else {
+            $daysInTear = $this->to->format('L') + 365;
+        }
+
+        return ($this->rate / $daysInTear * ($this->to->diffInDays($this->from) + 1) * $this->amount) / 100;
     }
 
     /**
@@ -127,7 +133,7 @@ class Interval implements Arrayable
             'from' => $this->from->toDateString(),
             'to' => $this->to->toDateString(),
             'rate' => $this->rate,
-            'amount' => $this->amount,
+            'amount' => $this->amount
         ];
     }
 }

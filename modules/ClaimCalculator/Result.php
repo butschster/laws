@@ -39,7 +39,7 @@ class Result implements ResultContract
      */
     public function amount(): float
     {
-        return $this->amount;
+        return round($this->amount, 2);
     }
 
     /**
@@ -47,7 +47,7 @@ class Result implements ResultContract
      */
     public function amountWithPercents(): float
     {
-        return $this->amount + $this->percents;
+        return round($this->amount + $this->percents, 2);
     }
 
     /**
@@ -55,7 +55,7 @@ class Result implements ResultContract
      */
     public function percents(): float
     {
-        return $this->percents;
+        return round($this->percents, 2);
     }
 
     /**
@@ -74,8 +74,8 @@ class Result implements ResultContract
     public function toArray()
     {
         return [
-            'amount' => $this->amount,
-            'percents' => $this->percents,
+            'amount' => $this->amount(),
+            'percents' => $this->percents(),
             'amount_with_percents' => $this->amountWithPercents(),
             'summary' => $this->summary->toArray(),
         ];

@@ -21,7 +21,7 @@ class Summary implements SummaryContract
     /**
      * @var float
      */
-    private $calculatedPercents;
+    private $rate;
 
     /**
      * @var Carbon
@@ -35,16 +35,16 @@ class Summary implements SummaryContract
 
     /**
      * @param float $amount
+     * @param float $rate
      * @param float $percents
-     * @param float $calculatedPercents
      * @param Carbon $startDate
      * @param Carbon $endDate
      */
-    public function __construct(float $amount, float $percents, float $calculatedPercents, Carbon $startDate, Carbon $endDate)
+    public function __construct(float $amount, float $rate, float $percents, Carbon $startDate, Carbon $endDate)
     {
         $this->amount = $amount;
+        $this->rate = $rate;
         $this->percents = $percents;
-        $this->calculatedPercents = $calculatedPercents;
         $this->startDate = $startDate;
         $this->endDate = $endDate;
     }
@@ -57,11 +57,12 @@ class Summary implements SummaryContract
     public function toArray()
     {
         return [
-            'amount' => $this->amount,
-            'percents' => $this->percents,
-            'calculated_percents' => $this->calculatedPercents,
-            'start_date' => $this->startDate->toDateString(),
-            'end_date' => $this->endDate->toDateString(),
+            'amount' => round($this->amount, 2),
+            'rate' => $this->rate,
+            'percents' => round($this->percents, 2),
+            'from' => $this->startDate->toDateString(),
+            'to' => $this->endDate->toDateString(),
+            'days' => $this->endDate->diffInDays($this->startDate) + 1
         ];
     }
 }
