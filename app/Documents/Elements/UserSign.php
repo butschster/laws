@@ -3,6 +3,7 @@
 namespace App\Documents\Elements;
 
 use App\Contracts\Documents\ElementInterface;
+use App\Law\Person;
 use App\Law\User;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
@@ -15,16 +16,18 @@ class UserSign implements ElementInterface
 {
 
     /**
-     * @var User
+     * @var Person
      */
-    private $user;
+    private $person;
 
     /**
-     * @param User $user
+     * UserSign constructor.
+     *
+     * @param Person $person
      */
-    public function __construct(User $user)
+    public function __construct(Person $person)
     {
-        $this->user = $user;
+        $this->person = $person;
     }
 
     /**
@@ -38,8 +41,8 @@ class UserSign implements ElementInterface
 
         $container->addText(sprintf(
             '%s _______________________________ %s',
-            $this->user->title(),
-            $this->user->shortName()
+            $this->person->title(),
+            $this->person->shortName()
         ), ['bold' => true]);
     }
 }

@@ -4,7 +4,7 @@ namespace App\Law;
 
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
-class Respondent extends User
+class Respondent extends Person
 {
     /**
      * @return string

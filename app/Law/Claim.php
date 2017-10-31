@@ -5,7 +5,6 @@ namespace App\Law;
 use App\FederalDistrict;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Module\ClaimCalculator\Contracts\Result;
 
 /**
  * Займ
@@ -58,14 +57,13 @@ class Claim
      */
     public function __construct(float $amount = 0, Carbon $borrowingDate, Carbon $returnDate, int $percents = 0, string $interval = self::MONTHLY)
     {
+        $this->additionalAmounts = new AdditionalAmounts();
         $this->amount = new ClaimAmount($amount);
 
         $this->borrowingDate = $borrowingDate;
         $this->returnDate = $returnDate;
         $this->percents = $percents;
         $this->interval = $interval;
-
-        $this->additionalAmounts = new Collection();
     }
 
     /**
@@ -88,7 +86,7 @@ class Claim
      */
     public function addReturnedMoney(Carbon $date, float $amount)
     {
-        $this->additionalAmounts->push(new ReturnedClaimAmount($amount, $date));
+        $this->additionalAmounts->addReturnedAmount($date, $amount);
 
         return $this;
     }
@@ -96,13 +94,11 @@ class Claim
     /**
      * Получение списка фактов возвращения денег
      *
-     * @return Collection|ReturnedClaimAmount[]
+     * @return AdditionalAmounts|ReturnedClaimAmount[]
      */
-    public function returnedAmounts(): Collection
+    public function returnedAmounts(): AdditionalAmounts
     {
-        return $this->additionalAmounts()->filter(function ($amount) {
-            return $amount instanceof ReturnedClaimAmount;
-        })->values();
+        return $this->additionalAmounts()->returnedAmounts();
     }
 
     /**
@@ -115,29 +111,25 @@ class Claim
      */
     public function addClaimedMoney(Carbon $date, float $amount)
     {
-        $this->additionalAmounts->push(new AdditionalClaimAmount($amount, $date));
+        $this->additionalAmounts->addClaimedAmount($date, $amount);
 
         return $this;
     }
 
     /**
-     * @return AdditionalClaimAmount[]|Collection
+     * @return AdditionalClaimAmount[]|AdditionalAmounts
      */
-    public function claimedAmounts(): Collection
+    public function claimedAmounts(): AdditionalAmounts
     {
-        return $this->additionalAmounts()->filter(function ($amount) {
-            return $amount instanceof AdditionalClaimAmount;
-        })->values();
+        return $this->additionalAmounts()->claimedAmounts();
     }
 
     /**
-     * @return AdditionalClaimAmount[]|ReturnedClaimAmount|Collection
+     * @return AdditionalClaimAmount[]|ReturnedClaimAmount|AdditionalAmounts
      */
-    public function additionalAmounts(): Collection
+    public function additionalAmounts(): AdditionalAmounts
     {
-        return $this->additionalAmounts->sortBy(function ($amount) {
-            return $amount->date();
-        })->values();
+        return $this->additionalAmounts->sortByDate();
     }
 
     /**
@@ -193,9 +185,9 @@ class Claim
     /**
      * Получение расчитанной суммы процентов по займу
      *
-     * @return Result
+     * @return \Module\ClaimCalculator\Contracts\Result
      */
-    public function calculate(): Result
+    public function calculate(): \Module\ClaimCalculator\Contracts\Result
     {
         return (new \Module\ClaimCalculator\Calculator($this))->calculate();
     }
@@ -205,10 +197,25 @@ class Claim
      *
      * @param FederalDistrict $district
      *
-     * @return Result
+     * @return \Module\FineCalculator\Contracts\Result
      */
-    public function calculate395(FederalDistrict $district): Result
+    public function calculate395(FederalDistrict $district): \Module\FineCalculator\Contracts\Result
     {
         return (new \Module\FineCalculator\Calculator($this, $district))->calculate();
+    }
+
+    /**
+     * @param Plaintiff $plaintiff
+     * @param Respondent $respondent
+     *
+     * @return Tax
+     */
+    public function calculateTax(Plaintiff $plaintiff, Respondent $respondent): Tax
+    {
+        return new ClaimTax(
+            $this->calculate()->amountWithPercents(),
+            $plaintiff,
+            $respondent
+        );
     }
 }

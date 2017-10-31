@@ -3,6 +3,7 @@
 namespace App\Documents\Elements;
 
 use App\Contracts\Documents\ElementInterface;
+use App\Law\Amount;
 use App\Law\Claim;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
@@ -48,12 +49,14 @@ class SimplePlaintText implements ElementInterface
 
         $container->addText("Согласно ч. 1 ст. 810 ГК РФ, заемщик обязан возвратить займодавцу полученную сумму займа в срок и в порядке, которые предусмотрены договором займа.");
 
-        if ($this->claim->hasReturnedAmounts()) {
+        $amount = $this->claim->calculate();
+        $returned = $this->claim->returnedAmounts();
+        if ($returned->count() > 0) {
             $container->addText("Из суммы займа Ответчик возвратил:");
 
             $amounts = [];
             foreach ($this->claim->returnedAmounts() as $amount) {
-                $amounts[] = sprintf('%s - %s', format_date($amount->returnDate()), (string) $amount);
+                $amounts[] = sprintf('%s - %s', format_date($amount->date()), (string) $amount);
             }
 
             (new BulletList($amounts))->insertTo($container);
@@ -62,7 +65,7 @@ class SimplePlaintText implements ElementInterface
 
             $container->addText(sprintf(
                 "Таким образом, Ответчик на день предъявления искового заявления имеет задолженность по основному обязательству в размере %s",
-                (string) $this->claim->residualAmount()
+                (string) new Amount($amount->percents()) /*$this->claim->residualAmount()*/
             ));
         }
 
@@ -73,7 +76,7 @@ class SimplePlaintText implements ElementInterface
         (new NumberedList([
             sprintf(
                 'Взыскать с Ответчика сумму задолженности по договору займа в размере %s',
-                (string) $this->claim->calculateReturnAmount()
+                (string) new Amount($amount->amountWithPercents())
             ),
             "Судебные расходы возложить на Ответчика."
         ]))->insertTo($container);

@@ -63,6 +63,14 @@ class Court extends Model
     }
 
     /**
+     * @return FederalDistrict
+     */
+    public function federalDistrict()
+    {
+        return $this->region->federalDistrict;
+    }
+
+    /**
      * Обновление статуса синхронизации
      *
      * @return void

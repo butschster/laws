@@ -34,13 +34,13 @@ Route::post('store-document', function (\Illuminate\Http\Request $request, \PhpO
         'interest_bearing_loan.interval' => ['required_if:is_interest_bearing_loan,true', Rule::in(['daily', 'weekly', 'monthly', 'yearly'])],
         'interest_bearing_loan.percent' => 'required_if:is_interest_bearing_loan,true|numeric|min:0|max:100',
 
-        'plaintiff.type' => ['required', Rule::in(['citizen', 'ip', 'organization'])],
+        'plaintiff.type' => ['required', Rule::in(\App\Law\Person::types())],
         'plaintiff.name' => 'required|fio',
         'plaintiff.address' => 'required|address',
         'plaintiff.has_fact_address' => 'boolean',
         'plaintiff.phone' => 'phone',
 
-        'respondent.type' => ['required', Rule::in(['citizen', 'ip', 'organization'])],
+        'respondent.type' => ['required', Rule::in(\App\Law\Person::types())],
         'respondent.name' => 'required|fio',
         'respondent.address' => 'required|address',
         'respondent.has_fact_address' => 'boolean',
@@ -64,11 +64,13 @@ Route::post('store-document', function (\Illuminate\Http\Request $request, \PhpO
 
     $document = new \App\Documents\SimpleDocument($phpWord);
 
+    $court = \App\Court::first();
+
     $document->addElement(
         new \App\Documents\Elements\Header(
             \App\Court::first(),
             $plaintiff = \App\Law\Plaintiff::fromArray($data['plaintiff']),
-            \App\Law\Respondent::fromArray($data['respondent']),
+            $respondent = \App\Law\Respondent::fromArray($data['respondent']),
             $claim = new \App\Law\Claim(
                 $data['amount'],
                 custom_date($data['date_of_borrowing']),
@@ -76,7 +78,7 @@ Route::post('store-document', function (\Illuminate\Http\Request $request, \PhpO
                 array_get($data, 'interest_bearing_loan.percent'),
                 array_get($data, 'interest_bearing_loan.interval')
             ),
-            new \App\Law\Tax(300)
+            $claim->calculateTax($plaintiff, $respondent)
         )
     );
 
@@ -101,7 +103,7 @@ Route::post('store-document', function (\Illuminate\Http\Request $request, \PhpO
 
     $document->addTextBreak(2);
 
-    $document->addElement(new \App\Documents\Elements\UserSign($plaintiff));
+    $document->addElement($plaintiff->sign());
 
     return response()->json([
         'path' => $document->save('test.docx')
