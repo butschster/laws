@@ -1,8 +1,9 @@
 <?php
 
-namespace Module\ClaimCalculator;
+namespace Module\FineCalculator;
 
-use Module\ClaimCalculator\Contracts\Result as ResultContract;
+use Illuminate\Support\Collection;
+use Module\FineCalculator\Contracts\Result as ResultContract;
 
 class Result implements ResultContract
 {
@@ -18,20 +19,25 @@ class Result implements ResultContract
     private $percents;
 
     /**
-     * @var SummaryCollection|Summary[]
+     * @var array|\Illuminate\Support\Collection
      */
     private $summary = [];
 
     /**
-     * @param float $amount
-     * @param float $percents
-     * @param array $summary
+     * @var \Module\FineCalculator\IntervalsCollection
      */
-    public function __construct(float $amount, float $percents, array $summary)
+    private $intervals;
+
+    /**
+     * @param float $amount
+     * @param \Module\FineCalculator\IntervalsCollection $intervals
+     */
+    public function __construct(float $amount, IntervalsCollection $intervals)
     {
-        $this->amount = $amount;
+        $percents = $intervals->sum();
+        $this->amount = $amount + $percents;
         $this->percents = $percents;
-        $this->summary = new SummaryCollection($summary);
+        $this->intervals = $intervals;
     }
 
     /**
@@ -59,11 +65,19 @@ class Result implements ResultContract
     }
 
     /**
-     * @return SummaryCollection
+     * @return Collection
      */
-    public function summary(): SummaryCollection
+    public function summary(): Collection
     {
-        return $this->summary;
+        return $this->intervals()->summary();
+    }
+
+    /**
+     * @return \Module\FineCalculator\IntervalsCollection
+     */
+    public function intervals(): \Module\FineCalculator\IntervalsCollection
+    {
+        return $this->intervals;
     }
 
     /**

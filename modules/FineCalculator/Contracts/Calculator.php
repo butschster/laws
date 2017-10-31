@@ -1,12 +1,12 @@
 <?php
 
-namespace Module\ClaimCalculator\Contracts;
+namespace Module\FineCalculator\Contracts;
 
 interface Calculator
 {
     /**
-     * Расчет процентов
-     * 
+     * Расчет процентов по статье 395
+     *
      * @return Result
      */
     public function calculate(): Result;

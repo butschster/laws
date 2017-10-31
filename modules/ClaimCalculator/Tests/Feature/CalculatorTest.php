@@ -38,10 +38,11 @@ class CalculatorTest extends TestCase
                     'summary' => [
                         [
                             'amount' => 1000,
-                            'percents' => 10,
-                            'calculated_percents' => 1200,
-                            'start_date' => '2016-10-26',
-                            'end_date' => '2017-10-26',
+                            'rate' => 10,
+                            'percents' => 1200,
+                            'from' => '2016-10-26',
+                            'to' => '2017-10-26',
+                            'days' => 366
                         ],
                     ],
                 ],

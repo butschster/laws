@@ -1,8 +1,9 @@
 <?php
 
-namespace Module\ClaimCalculator\Contracts;
+namespace Module\FineCalculator\Contracts;
 
 use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Support\Collection;
 use Module\ClaimCalculator\SummaryCollection;
 
 interface Result extends Arrayable
@@ -31,7 +32,12 @@ interface Result extends Arrayable
     /**
      * Сводка по займу
      *
-     * @return SummaryCollection
+     * @return Collection
      */
-    public function summary(): SummaryCollection;
+    public function summary(): Collection;
+
+    /**
+     * @return \Module\FineCalculator\IntervalsCollection
+     */
+    public function intervals(): \Module\FineCalculator\IntervalsCollection;
 }

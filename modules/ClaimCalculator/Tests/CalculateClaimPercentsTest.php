@@ -165,11 +165,12 @@ class CalculateClaimPercentsTest extends TestCase
             'amount_with_percents' => 62000,
             'summary' => [
                 [
-                    'amount' => 50000,
-                    'percents' => 2,
-                    'calculated_percents' => 12000,
-                    'start_date' => '2016-10-26',
-                    'end_date' => '2017-10-26'
+                    'amount' => 50000.0,
+                    'rate' => 2.0,
+                    'percents' => 12000.0,
+                    'from' => '2016-10-26',
+                    'to' => '2017-10-26',
+                    'days' => 366
                 ]
             ]
         ], $result->toArray());

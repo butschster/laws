@@ -1,9 +1,9 @@
 <?php
 
-namespace Module\ClaimCalculator;
+namespace Module\FineCalculator;
 
 use Carbon\Carbon;
-use Module\ClaimCalculator\Contracts\Summary as SummaryContract;
+use Module\FineCalculator\Contracts\Summary as SummaryContract;
 
 class Summary implements SummaryContract
 {
