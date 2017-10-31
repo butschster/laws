@@ -19,9 +19,7 @@ class CalculatorTest extends TestCase
         $claim = new Claim(10000, Carbon::parse('2014-01-01'), Carbon::parse('2016-09-01'));
         $calculator = new Calculator($claim, $district);
 
-        $intervals = $calculator->makeIntervals();
-
-        $this->assertEquals(2349.53, $intervals->sum());
+        $this->assertEquals(2322.32, $calculator->calculate()->percents());
     }
 
     function test_make_intervals_with_returned_money()
@@ -35,7 +33,7 @@ class CalculatorTest extends TestCase
 
         $calculator = new Calculator($claim, $district);
 
-        $intervals = $calculator->makeIntervals();
+        $intervals = $calculator->calculate()->intervals();
 
         $this->assertEquals([
             [
@@ -94,7 +92,7 @@ class CalculatorTest extends TestCase
 
         $calculator = new Calculator($claim, $district);
 
-        $intervals = $calculator->makeIntervals();
+        $intervals = $calculator->calculate()->intervals();
 
         $this->assertEquals([
             [
@@ -153,7 +151,7 @@ class CalculatorTest extends TestCase
 
         $calculator = new Calculator($claim, $district);
 
-        $intervals = $calculator->makeIntervals();
+        $intervals = $calculator->calculate()->intervals();
 
         $this->assertEquals([
             [
@@ -176,6 +174,12 @@ class CalculatorTest extends TestCase
             ],
             [
                 "from" => "2016-11-15",
+                "to" => "2016-12-31",
+                "rate" => 10.0,
+                "amount" => 80000.0,
+            ],
+            [
+                "from" => "2017-01-01",
                 "to" => "2017-03-26",
                 "rate" => 10.0,
                 "amount" => 80000.0,

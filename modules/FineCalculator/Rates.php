@@ -18,8 +18,6 @@ class Rates implements Arrayable
     private $rates;
 
     /**
-     * Rates constructor.
-     *
      * @param FederalDistrict $district
      *
      * @throws DistrictRatesNotFound
@@ -68,6 +66,8 @@ class Rates implements Arrayable
     }
 
     /**
+     * Получение списка ключевых ставок
+     *
      * Collection|Rate[]
      */
     public function rates(): Collection
@@ -76,6 +76,8 @@ class Rates implements Arrayable
     }
 
     /**
+     * Поиск ключевой ставки по дате
+     *
      * @param Carbon $date
      *
      * @return Rate|null

@@ -3,15 +3,14 @@
 namespace Module\FineCalculator;
 
 use App\FederalDistrict;
-use App\Law\AdditionalClaimAmount;
 use App\Law\Claim;
 use App\Law\ReturnedClaimAmount;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Module\ClaimCalculator\Result;
-use Module\ClaimCalculator\Summary;
+use Module\FineCalculator\Contracts\Calculator as CalculatorContract;
+use Module\FineCalculator\Contracts\Result as ResultContract;
 
-class Calculator
+class Calculator implements CalculatorContract
 {
 
     /**
@@ -23,11 +22,6 @@ class Calculator
      * @var Rates
      */
     private $rates;
-
-    /**
-     * @var array
-     */
-    private $summary = [];
 
     /**
      * Calculator constructor.
@@ -42,48 +36,28 @@ class Calculator
     }
 
     /**
-     * @return Result
+     * @return ResultContract
      */
-    public function calculate(): Result
+    public function calculate(): ResultContract
     {
-        $intervals = $this->makeIntervals();
-
-        $amount = 0;
-
-        foreach ($intervals as $interval) {
-
-            $sum = $interval->calculate();
-            $amount += $sum;
-
-            $this->summary[] = new Summary(
-                $interval->amount(),
-                $interval->rate(),
-                $sum,
-                $interval->from(),
-                $interval->to()
-            );
-        }
-
-        $totalAmount = $amount + $this->claim->amount()->amount();
-
-        return new Result($totalAmount, $amount, $this->summary);
+        return new Result($this->claim->amount()->amount(), $this->makeIntervals());
     }
 
     /**
      * @return IntervalsCollection|Interval[]
      */
-    public function makeIntervals(): IntervalsCollection
+    protected function makeIntervals(): IntervalsCollection
     {
         $from = $this->claim->borrowingDate();
         $returnDate = $this->claim->returnDate();
         $amount = $this->claim->amount()->amount();
 
-        if ($from->gte($returnDate)) {
-            return new IntervalsCollection();
-        }
-
         /** @var Interval[] $intervals */
-        $intervals = [];
+        $intervals = new IntervalsCollection();
+
+        if ($from->gte($returnDate)) {
+            return $intervals;
+        }
 
         $break = false;
 
@@ -97,21 +71,22 @@ class Calculator
 
             $interval = new Interval($from, $to, $rate->rate(), $amount);
 
-            if ($from->year < 2016) {
-                foreach (range($from->year, 2016) as $year) {
-                    $endOfYear = Carbon::create($year, 12, 31);
-                    $newYear = clone $endOfYear;
+            foreach (range($from->year, $to->year) as $year) {
+                $endOfYear = Carbon::create($year, 12, 31);
+                $newYear = clone $endOfYear;
 
-                    if ($rate->contains($endOfYear)) {
-                        $intervals[] = new Interval($from, $endOfYear, $rate->rate(), $amount);
-                        $interval = new Interval($newYear->addDay(1), $to, $rate->rate(), $amount);
-                    }
+                if ($rate->contains($endOfYear)) {
+
+                    $intervals->push(
+                        new Interval($from, $endOfYear, $rate->rate(), $amount)
+                    );
+
+                    $interval = new Interval($newYear->addDay(1), $to, $rate->rate(), $amount);
                 }
             }
 
             $toSecond = clone $rate->to();
-
-            $intervals[] = $interval;
+            $intervals->push($interval);
 
             if ($break) {
                 break;
@@ -120,101 +95,45 @@ class Calculator
             $from = $toSecond->addDay(1);
         }
 
-        $intervals = $this->sortIntervalsByDate($intervals);
+        $intervals = $this->calculateAdditionAmounts($intervals, $this->claim->returnedAmounts());
+        $intervals = $this->calculateAdditionAmounts($intervals, $this->claim->claimedAmounts());
 
-
-        $returnedAmounts = $this->claim->returnedAmounts();
-
-        while ($returnedAmounts->count() > 0) {
-
-            /** @var ReturnedClaimAmount $amount */
-            $amount = $returnedAmounts->shift();
-
-            $itemFrom = clone $amount->date();
-
-            foreach ($intervals as $i => $interval) {
-                if ($interval->contains($amount->date())) {
-                    $intervals[$i] = new Interval($interval->from(), $amount->date(), $interval->rate(), $interval->amount());
-                    $intervals[] = new Interval($itemFrom->addDay(1), $interval->to(), $interval->rate(), $interval->amount());
-
-                    $intervals = $this->sortIntervalsByDate($intervals);
-
-                    $i++;
-                    while (isset($intervals[$i])) {
-                        $intervals[$i]->sub($amount->amount());
-                        $i++;
-                    }
-                }
-            }
-        }
-
-        $intervals = $this->sortIntervalsByDate($intervals);
-
-        $claimedAmounts = $this->claim->claimedAmounts();
-
-        while ($claimedAmounts->count() > 0) {
-
-            /** @var AdditionalClaimAmount $amount */
-            $amount = $claimedAmounts->shift();
-
-            $itemFrom = clone $amount->date();
-
-            foreach ($intervals as $i => $interval) {
-                if ($interval->contains($amount->date())) {
-                    $intervals[$i] = new Interval($interval->from(), $itemFrom->subDay(1), $interval->rate(), $interval->amount());
-                    $intervals[] = new Interval($amount->date(), $interval->to(), $interval->rate(), $interval->amount());
-
-                    $intervals = $this->sortIntervalsByDate($intervals);
-
-                    $i++;
-                    while (isset($intervals[$i])) {
-                        $intervals[$i]->add($amount->amount());
-                        $i++;
-                    }
-                }
-            }
-        }
-
-        return (new IntervalsCollection($intervals))->sortBy(function (Interval $interval) {
-            return $interval->from();
-        })->values();
+        return $intervals->sortByDate();
     }
 
     /**
-     * @param Collection $amounts
-     * @param array $intervals
+     * @param IntervalsCollection $intervals
+     * @param Collection $additionalAmounts
      *
-     * @return array
+     * @return IntervalsCollection
      */
-    protected function calculateAdditionalIntervals(Collection $amounts, array $intervals): array
+    protected function calculateAdditionAmounts(IntervalsCollection $intervals, Collection $additionalAmounts): IntervalsCollection
     {
-        while ($amounts->count() > 0) {
+        $intervals = $intervals->sortByDate();
 
-            /** @var AdditionalClaimAmount $amount */
-            $amount = $amounts->shift();
+        while ($additionalAmounts->count() > 0) {
+
+            /** @var ReturnedClaimAmount $amount */
+            $amount = $additionalAmounts->shift();
 
             $itemFrom = clone $amount->date();
 
             foreach ($intervals as $i => $interval) {
                 if ($interval->contains($amount->date())) {
-                    if ($interval instanceof AdditionalClaimAmount) {
-                        $intervals[$i] = new Interval($interval->from(), $itemFrom->subDay(1), $interval->rate(), $interval->amount());
-                        $intervals[] = new Interval($amount->date(), $interval->to(), $interval->rate(), $interval->amount());
-                    } else {
+
+                    if ($amount instanceof ReturnedClaimAmount) {
                         $intervals[$i] = new Interval($interval->from(), $amount->date(), $interval->rate(), $interval->amount());
                         $intervals[] = new Interval($itemFrom->addDay(1), $interval->to(), $interval->rate(), $interval->amount());
+                    } else {
+                        $intervals[$i] = new Interval($interval->from(), $itemFrom->subDay(1), $interval->rate(), $interval->amount());
+                        $intervals[] = new Interval($amount->date(), $interval->to(), $interval->rate(), $interval->amount());
                     }
 
-                    $intervals = $this->sortIntervalsByDate($intervals);
+                    $intervals = $intervals->sortByDate();
 
                     $i++;
                     while (isset($intervals[$i])) {
-
-                        if ($interval instanceof AdditionalClaimAmount) {
-                            $intervals[$i]->add($amount->amount());
-                        } else {
-                            $intervals[$i]->sub($amount->amount());
-                        }
+                        $intervals[$i]->consider($amount);
 
                         $i++;
                     }
@@ -224,18 +143,5 @@ class Calculator
 
         return $intervals;
     }
-
-    /**
-     * @param $intervals
-     *
-     * @return array
-     */
-    protected function sortIntervalsByDate($intervals): array
-    {
-        return array_values(array_sort($intervals, function (Interval $interval) {
-            return $interval->from();
-        }));
-    }
-
 
 }

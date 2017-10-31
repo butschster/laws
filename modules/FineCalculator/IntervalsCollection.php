@@ -23,28 +23,32 @@ class IntervalsCollection extends Collection
     }
 
     /**
-     * @param Carbon $date
-     *
      * @return static
      */
-    public function containsDate(Carbon $date)
+    public function sortByDate()
     {
-        return $this->filter(function (Interval $interval) use ($date) {
-            return $interval->contains($date);
-        });
+        return $this->sortBy(function (Interval $interval) {
+            return $interval->from();
+        })->values();
     }
 
     /**
-     * @param Carbon $date
-     * @param float $amount
+     * @return Collection
      */
-    public function subAmountFromDate(Carbon $date, float $amount)
+    public function summary(): Collection
     {
-        $this
-            ->filter(function (Interval $interval) use ($date) {
-                return $interval->contains($date);
-            })->each(function (Interval $interval) use ($amount) {
-                $interval->sub($amount);
-            });
+        $summary = [];
+
+        foreach ($this as $interval) {
+            $summary[] = new Summary(
+                $interval->amount(),
+                $interval->rate(),
+                $interval->calculate(),
+                $interval->from(),
+                $interval->to()
+            );
+        }
+
+        return collect($summary);
     }
 }

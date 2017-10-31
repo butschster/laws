@@ -2,10 +2,12 @@
 
 namespace Module\FineCalculator;
 
+use App\Law\Amount;
+use App\Law\ReturnedClaimAmount;
 use Carbon\Carbon;
-use Illuminate\Contracts\Support\Arrayable;
+use Module\FineCalculator\Contracts\Interval as IntervalContract;
 
-class Interval implements Arrayable
+class Interval implements IntervalContract
 {
 
     /**
@@ -77,26 +79,6 @@ class Interval implements Arrayable
     }
 
     /**
-     * @param float $amount
-     *
-     * @return void
-     */
-    public function sub(float $amount)
-    {
-        $this->amount -= $amount;
-    }
-
-    /**
-     * @param float $amount
-     *
-     * @return void
-     */
-    public function add(float $amount)
-    {
-        $this->amount += $amount;
-    }
-
-    /**
      * Проверка принадлежности даты периоду действия ставки
      *
      * @param Carbon $date
@@ -113,11 +95,7 @@ class Interval implements Arrayable
      */
     public function calculate(): float
     {
-        if ($this->to->lt(Carbon::parse('2016-03-24'))) {
-            $daysInTear = 360;
-        } else {
-            $daysInTear = $this->to->format('L') + 365;
-        }
+        $daysInTear = $this->to->format('L') + 365;
 
         return ($this->rate / $daysInTear * ($this->to->diffInDays($this->from) + 1) * $this->amount) / 100;
     }
@@ -135,5 +113,19 @@ class Interval implements Arrayable
             'rate' => $this->rate,
             'amount' => $this->amount
         ];
+    }
+
+    /**
+     * @param Amount $amount
+     *
+     * @return void
+     */
+    public function consider(Amount $amount)
+    {
+        if ($amount instanceof ReturnedClaimAmount) {
+            $this->amount -= $amount->amount();
+        } else {
+            $this->amount += $amount->amount();
+        }
     }
 }

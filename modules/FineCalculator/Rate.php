@@ -3,9 +3,9 @@
 namespace Module\FineCalculator;
 
 use Carbon\Carbon;
-use Illuminate\Contracts\Support\Arrayable;
+use Module\FineCalculator\Contracts\Rate as RateContract;
 
-class Rate implements Arrayable
+class Rate implements RateContract
 {
 
     /**
