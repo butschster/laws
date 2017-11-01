@@ -5,6 +5,7 @@ return [
         'amount' => 'Сумма займа',
         'date_of_borrowing' => 'Дата выдачи',
         'date_of_return' => 'Дата возврата',
+        'date_of_signing' => 'Дата выдачи расписки',
         'is_interest_bearing_loan' => 'Займ является процентным',
         'interest_bearing_loan' => [
             'interval' => 'Период',

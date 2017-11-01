@@ -1,0 +1,1 @@
+window.ValidationMixin = require('./mixins/validation');

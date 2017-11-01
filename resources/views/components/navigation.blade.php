@@ -3,6 +3,8 @@
     <ul class="navbar-nav text-uppercase g-font-weight-600 ml-auto">
         <!-- Authentication Links -->
 
+
+
         @guest
 
         <li class="nav-item g-mx-20--lg">

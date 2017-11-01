@@ -2,8 +2,11 @@
 
 <script type="text/x-template" id="simple-claim-form-template">
     <div>
-        <user-type-form title="Истец" :data="data.plaintiff"></user-type-form>
-        <user-type-form title="Должник" :data="data.respondent"></user-type-form>
+        <h2 class="mb-5">Иск по займу</h2>
+
+        <user-type-form title="Истец" :data="data.plaintiff" vkey="plaintiff"></user-type-form>
+
+        <user-type-form title="Должник" :data="data.respondent" vkey="respondent"></user-type-form>
 
         <div class="g-brd-around g-brd-gray-light-v4 g-pa-30 g-mb-30">
 
@@ -24,21 +27,21 @@
             <div class="form-group form-row">
                 <div class="col">
                     <label v-text="LabelDateOfSigning"></label>
-                    <input type="text" class="form-control" v-model="data.date_of_signing">
+                    <date-picker v-model="data.date_of_signing" :config="config" validation-key="date_of_signing"></date-picker>
                 </div>
                 <div class="col">
                     <label v-text="LabelDateOfBorrowing"></label>
-                    <input type="text" class="form-control" v-model="data.date_of_borrowing">
+                    <date-picker v-model="data.date_of_borrowing" :config="config" validation-key="date_of_borrowing"></date-picker>
                 </div>
                 <div class="col">
                     <label v-text="LabelDateOfReturn"></label>
-                    <input type="text" class="form-control" v-model="data.date_of_return">
+                    <date-picker v-model="data.date_of_return" :config="config" validation-key="date_of_return"></date-picker>
                 </div>
             </div>
 
             <div class="form-group">
                 <label>Сумма займа</label>
-                <input class="form-control" v-model.number="data.amount" type="number">
+                <input class="form-control" v-model.number="data.amount" type="number" validation-key="amount">
 
                 <div v-text="amountHelpText" class="form-text text-muted"></div>
             </div>
@@ -47,14 +50,14 @@
 
             <div class="form-group">
                 <label class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" v-model="data.has_returned_money">
+                    <input type="checkbox" class="custom-control-input" v-model="data.has_partly_returned_money">
                     <span class="custom-control-indicator"></span>
                     <span class="custom-control-description">Осуществлялся ли должником частичный возврат суммы займа?</span>
                 </label>
             </div>
 
-            <div v-if="data.has_returned_money">
-                <ul class="list-group mb-4">
+            <div v-if="data.has_partly_returned_money">
+                <ul class="list-group mb-4" v-if="data.partly_returned_money.length">
                     <li class="list-group-item" v-for="(row, index) in data.partly_returned_money">
                         <button type="button" class="close" @click="removePartlyReturnedMoneyRow(index)">
                             <span aria-hidden="true">&times;</span>
@@ -63,17 +66,67 @@
                         <div class="form-group form-row">
                             <div class="col">
                                 <label>Дата возврата</label>
-                                <input type="text" class="form-control" v-model="row.date">
+
+                                <date-picker
+                                        v-model="row.date"
+                                        :config="config"
+                                        :validation-key="'partly_returned_money.'+index+'.date'"></date-picker>
                             </div>
                             <div class="col">
                                 <label>Сумма</label>
-                                <input class="form-control" v-model.number="row.amount" type="number">
+                                <input
+                                        class="form-control"
+                                       v-model.number="row.amount"
+                                       type="number"
+                                       :validation-key="'partly_returned_money.'+index+'.amount'">
                             </div>
                         </div>
                     </li>
                 </ul>
 
                 <button type="button" class="btn btn-success" @click="addPartlyReturnedMoneyRow">
+                    Добавить
+                </button>
+            </div>
+
+            <hr>
+
+            <div class="form-group">
+                <label class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" v-model="data.has_claimed_money">
+                    <span class="custom-control-indicator"></span>
+                    <span class="custom-control-description">Осуществлялось ли должником учеличение займа?</span>
+                </label>
+            </div>
+
+            <div v-if="data.has_claimed_money">
+                <ul class="list-group mb-4" v-if="data.claimed_money.length">
+                    <li class="list-group-item" v-for="(row, index) in data.claimed_money">
+                        <button type="button" class="close" @click="removeClaimedMoneyRow(index)">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+
+                        <div class="form-group form-row">
+                            <div class="col">
+                                <label>Дата займа</label>
+                                <date-picker
+                                        v-model="row.date"
+                                        :config="config"
+                                        :validation-key="'claimed_money.'+index+'.date'"></date-picker>
+                            </div>
+                            <div class="col">
+                                <label>Сумма</label>
+                                <input
+                                        class="form-control"
+                                        v-model.number="row.amount"
+                                        type="number"
+                                        validation-key="'claimed_money.'+index'.amount'">
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+
+                <button type="button" class="btn btn-success" @click="addClaimedMoneyRow">
                     Добавить
                 </button>
             </div>
@@ -120,7 +173,11 @@
                 <div class="form-group">
                     <div v-if="data.forfeit.type == 'mulct'">
                         <label>Размер штрафа</label>
-                        <input class="form-control" v-model.number="data.forfeit.mulct" type="number">
+                        <input
+                                class="form-control"
+                                v-model.number="data.forfeit.mulct"
+                                type="number"
+                                validation-key="forfeit.mulct" >
                     </div>
 
                     <div v-if="data.forfeit.type == 'fine'">
@@ -130,9 +187,32 @@
             </div>
         </div>
 
+        <div class="g-brd-around g-brd-gray-light-v4 g-pa-30 g-mb-30" v-if="link">
+            <div class="row text-center text-uppercase">
+                <div class="col-md-4">
+                    <div class="js-counter g-font-size-35 g-font-weight-300 g-mb-7" v-text="tax"></div>
+                    <h4 class="h5 g-color-gray-dark-v4">Гос пошлина</h4>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="js-counter g-font-size-35 g-font-weight-300 g-mb-7" v-text="percents.percents"></div>
+                    <h4 class="h5 g-color-gray-dark-v4">Сумма процентов</h4>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="js-counter g-font-size-35 g-font-weight-300 g-mb-7" v-text="percents.amount_with_percents"></div>
+                    <h4 class="h5 g-color-gray-dark-v4">Сумма возврата</h4>
+                </div>
+            </div>
+        </div>
+
         <button type="submit" class="btn btn-lg btn-primary" @click="send">
-            Сохранить
+            Сформировать
         </button>
+
+        <a :href="link" class="btn btn-lg btn-success" v-if="link">
+            Скачать документ
+        </a>
     </div>
 </script>
 
@@ -142,7 +222,7 @@
             <h3 v-text="title"></h3>
 
             <label class="custom-control custom-radio" v-for="(key, type) in types">
-                <input type="radio" v-model="data.type" :name="title" :value="type" class="custom-control-input">
+                <input type="radio" v-model.number="data.type" :name="title" :value="type" class="custom-control-input">
                 <span class="custom-control-indicator"></span>
                 <span class="custom-control-description" v-text="key"></span>
             </label>
@@ -150,12 +230,12 @@
 
         <div class="form-group">
             <label v-text="LabelName"></label>
-            <input type="text" class="form-control" v-model="data.name">
+            <input type="text" class="form-control" v-model="data.name" :validation-key="vkey+'.name'">
         </div>
 
         <div class="form-group">
             <label v-text="LabelAddress"></label>
-            <input type="text" class="form-control" v-model="data.address">
+            <input type="text" class="form-control" v-model="data.address" :validation-key="vkey+'.address'">
         </div>
 
         <div class="form-group">
@@ -168,12 +248,12 @@
 
         <div class="form-group" v-if="data.has_fact_address">
             <label v-text="LabelFactAddress"></label>
-            <input type="text" class="form-control" v-model="data.fact_address">
+            <input type="text" class="form-control" v-model="data.fact_address" :validation-key="vkey+'.fact_address'">
         </div>
 
         <div class="form-group">
             <label v-text="LabelPhone"></label>
-            <input type="text" class="form-control" v-model="data.phone">
+            <input type="text" class="form-control" v-model="data.phone" :validation-key="vkey+'.phone'">
         </div>
     </div>
 </script>
@@ -228,6 +308,10 @@
 
         Vue.component('user-type-form', {
             props: {
+                vkey: {
+                    required: true,
+                    type: String
+                },
                 title: {
                     required: true,
                     type: String
@@ -248,34 +332,33 @@
                 }
             },
             computed: {
-                // Истец
                 LabelName() {
                     switch (this.data.type) {
-                        case 'citizen':
+                        case 1:
                             return 'ФИО';
-                        case 'ip':
+                        case 2:
                             return 'Наименование';
-                        case 'organization':
+                        case 3:
                             return 'Наименование';
                     }
                 },
                 LabelAddress() {
                     switch (this.data.type) {
-                        case 'citizen':
+                        case 1:
                             return 'Адрес прописки';
-                        case 'ip':
+                        case 2:
                             return 'Адрес регистрации';
-                        case 'organization':
+                        case 3:
                             return 'Адрес регистрации';
                     }
                 },
                 LabelFactAddress() {
                     switch (this.data.type) {
-                        case 'citizen':
+                        case 1:
                             return 'Адрес проживания';
-                        case 'ip':
+                        case 2:
                             return 'Адрес нахождения';
-                        case 'organization':
+                        case 3:
                             return 'Адрес нахождения';
                     }
                 },
@@ -287,11 +370,23 @@
 
         Vue.component('simple-claim-form', {
             template: '#simple-claim-form-template',
+            mixins: [ValidationMixin],
             data() {
                 return {
+                    config: {
+                        format: 'DD.MM.YYYY',
+                        useCurrent: false
+                    },
+                    link: null,
+                    tax: 0,
+                    percents: {
+                        amount: 0,
+                        amount_with_percents: 0,
+                        percents: 0,
+                    },
                     data: {
                         plaintiff: {
-                            type: 'citizen',
+                            type: 1,
                             name: '',
                             address: '',
                             fact_address: '',
@@ -300,7 +395,7 @@
                         },
 
                         respondent: {
-                            type: 'citizen',
+                            type: 1,
                             name: '',
                             address: '',
                             fact_address: '',
@@ -313,8 +408,13 @@
                         date_of_borrowing: '',
                         date_of_return: '',
                         amount: 0,
-                        has_returned_money: false,
+
+                        has_partly_returned_money: false,
                         partly_returned_money: [],
+
+                        has_claimed_money: false,
+                        claimed_money: [],
+
                         is_interest_bearing_loan: false,
                         interest_bearing_loan: {
                             percent: 0,
@@ -350,100 +450,40 @@
             methods: {
                 addPartlyReturnedMoneyRow() {
                     this.data.partly_returned_money.push({
-                        date: '',
+                        date: moment().format('DD.MM.YYYY'),
                         amount: 0
                     })
-
-                    console.log(this.data.partly_returned_money)
                 },
                 removePartlyReturnedMoneyRow(i) {
                     this.data.partly_returned_money.splice(i, 1);
                 },
 
-                send() {
-                    axios.post('/store-document', this.data).then(response => {
-                        console.log(response)
+                addClaimedMoneyRow() {
+                    this.data.claimed_money.push({
+                        date: moment().format('DD.MM.YYYY'),
+                        amount: 0
                     })
+                },
+                removeClaimedMoneyRow(i) {
+                    this.data.claimed_money.splice(i, 1);
+                },
+
+                send() {
+                    this.clearInvalidInputs();
+
+                    this.link = null;
+
+                    this.$api.claim.generateDocument(this.data).then(response => {
+
+                        this.link = response.data.link;
+                        this.tax = response.data.tax;
+                        this.percents = response.data.percents;
+
+                    });
                 }
             },
 
             computed: {
-                // Истец
-                LabelPlaintiffName() {
-                    switch (this.data.plaintiff.type) {
-                        case 'citizen':
-                            return 'ФИО';
-                        case 'ip':
-                            return 'Наименование';
-                        case 'organization':
-                            return 'Наименование';
-                    }
-                },
-                LabelPlaintiffAddress() {
-                    switch (this.data.plaintiff.type) {
-                        case 'citizen':
-                            return 'Адрес прописки';
-                        case 'ip':
-                            return 'Адрес регистрации';
-                        case 'organization':
-                            return 'Адрес регистрации';
-                    }
-                },
-                LabelPlaintiffFactAddress() {
-                    switch (this.data.plaintiff.type) {
-                        case 'citizen':
-                            return 'Адрес проживания';
-                        case 'ip':
-                            return 'Адрес нахождения';
-                        case 'organization':
-                            return 'Адрес нахождения';
-                    }
-                },
-                LabelPlaintiffPhone() {
-                    return 'Контактный телефон (заполняется по желанию)';
-                },
-
-
-                // Должник
-                LabelRespondentName() {
-                    switch (this.data.respondent.type) {
-                        case 'citizen':
-                            return 'ФИО';
-                        case 'ip':
-                            return 'Наименование';
-                        case 'organization':
-                            return 'Наименование';
-                    }
-                },
-                LabelRespondentAddress() {
-                    switch (this.data.respondent.type) {
-                        case 'citizen':
-                            return 'Адрес прописки';
-                        case 'ip':
-                            return 'Адрес регистрации';
-                        case 'organization':
-                            return 'Адрес регистрации';
-                    }
-                },
-
-                LabelRespondentHasFactAddress() {
-                    return 'Имеется ли адрес для почтовой корреспонденции?';
-                },
-
-                LabelRespondentFactAddress() {
-                    switch (this.data.respondent.type) {
-                        case 'citizen':
-                            return 'Адрес проживания';
-                        case 'ip':
-                            return 'Адрес нахождения';
-                        case 'organization':
-                            return 'Адрес нахождения';
-                    }
-                },
-                LabelRespondentPhone() {
-                    return 'Контактный телефон (если имеется)';
-                },
-
                 LabelDateOfSigning() {
                     switch (this.data.basis_of_loan) {
                         case 'voucher':
@@ -460,7 +500,7 @@
                 },
 
                 amountHelpText() {
-                    if (this.data.plaintiff.type == 'citizen' || this.data.respondent.type == 'citizen') {
+                    if (this.data.plaintiff.type == 1 || this.data.respondent.type == 1) {
                         if (this.data.amount > 500000) {
                             return 'Дело рассматривается в порядке искового производства (ст. 121 ГПК РФ)';
                         } else {
@@ -468,7 +508,7 @@
                         }
                     }
 
-                    if (this.data.respondent.type == 'organization') {
+                    if (this.data.respondent.type == 3) {
                         if (this.data.amount > 500000) {
                             return 'Дело рассматривается в порядке в порядке искового производства (ст. 227 АПК РФ)';
                         } else {
@@ -476,7 +516,7 @@
                         }
                     }
 
-                    if (this.data.respondent.type == 'ip') {
+                    if (this.data.respondent.type ==  2) {
                         if (this.data.amount > 250000) {
                             return 'Дело рассматривается в порядке в порядке искового производства (ст. 227 АПК РФ)';
                         } else {

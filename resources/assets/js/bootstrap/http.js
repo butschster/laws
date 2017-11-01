@@ -9,6 +9,9 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
 // Add a response interceptor
 axios.interceptors.response.use(response => {
+
+    Bus.$emit('response.success', response.data);
+
     return response;
 }, (error) => {
     if (!error.response) {
@@ -16,9 +19,6 @@ axios.interceptors.response.use(response => {
     }
 
     switch (error.response.status) {
-        case 200:
-            break;
-
         case 422:
             console.error('Validation', error.response.data);
             Bus.$emit('validation.thrown', error.response.data);

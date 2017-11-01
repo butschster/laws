@@ -1,4 +1,5 @@
 require('./bootstrap');
+require('./vue/mixins');
 
 import Datepicker from 'vue-bootstrap-datetimepicker';
 Vue.use(Datepicker);

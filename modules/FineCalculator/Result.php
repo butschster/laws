@@ -91,7 +91,7 @@ class Result implements ResultContract
             'amount' => $this->amount(),
             'percents' => $this->percents(),
             'amount_with_percents' => $this->amountWithPercents(),
-            'summary' => $this->summary->toArray(),
+            'summary' => $this->summary()->toArray(),
         ];
     }
 }

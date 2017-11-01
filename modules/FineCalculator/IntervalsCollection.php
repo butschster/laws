@@ -9,7 +9,7 @@ class IntervalsCollection extends Collection
 {
 
     /**
-     * @param null $callback
+     * @param \Closure|null $callback
      *
      * @return float
      */

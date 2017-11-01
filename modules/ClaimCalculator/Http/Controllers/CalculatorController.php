@@ -12,6 +12,14 @@ class CalculatorController extends Controller
 {
 
     /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function index()
+    {
+        return view('ClaimCalculator::index');
+    }
+
+    /**
      * @param Request $request
      *
      * @return CalculatorResource
