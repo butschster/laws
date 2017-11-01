@@ -2,7 +2,7 @@
 
 namespace Module\ClaimCalculator\Tests\Feature;
 
-use App\Law\Claim;
+use App\Law\InterestRate;
 use Tests\TestCase;
 
 class CalculatorTest extends TestCase
@@ -10,20 +10,20 @@ class CalculatorTest extends TestCase
 
     function test_calculate_with_failed_validation()
     {
-        $response = $this->json('post', route('claim-calculator'));
+        $response = $this->json('post', route('claim.calculate.fine'));
 
         $response->assertStatus(422);
     }
 
     function test_calculate()
     {
-        $response = $this->json('post', route('claim-calculator'), [
+        $response = $this->json('post', route('claim.calculate.fine'), [
             'amount' => 1000,
             'date_of_borrowing' => '26.10.2016',
             'date_of_return' => '26.10.2017',
             'is_interest_bearing_loan' => true,
             'interest_bearing_loan' => [
-                'interval' => Claim::MONTHLY,
+                'interval' => InterestRate::MONTHLY,
                 'percent' => 10,
             ],
             'has_returned_money' => false,

@@ -156,7 +156,7 @@
             </div>
 
             <div v-if="data.has_forfeit">
-                <div class="form-group">
+                {{--<div class="form-group">
                     <label class="custom-control custom-radio">
                         <input type="radio" v-model="data.forfeit.type" value="mulct" class="custom-control-input">
                         <span class="custom-control-indicator"></span>
@@ -168,7 +168,7 @@
                         <span class="custom-control-description">Пеня</span>
                     </label>
                 </div>
-
+                --}}
 
                 <div class="form-group">
                     <div v-if="data.forfeit.type == 'mulct'">
@@ -422,7 +422,7 @@
                         },
                         has_forfeit: false,
                         forfeit: {
-                            type: 'mulct',
+                            type: 'fine',
                             mulct: 0,
                             fine: {
                                 percent: 0,
@@ -436,7 +436,7 @@
               let localHistory = s.get('form-history');
 
               if(_.isObject(localHistory)) {
-                  this.data = localHistory;
+                  //this.data = localHistory;
               }
             },
             watch: {

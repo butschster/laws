@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Claim;
 
 use App\Law\ClaimTax;
 use App\Law\Person;
@@ -11,7 +11,7 @@ use Tests\TestCase;
 class CalculateClaimTaxTest extends TestCase
 {
     /**
-     * @dataProvider testAmountsForTaxData
+     * @dataProvider amountsForTaxData
      */
     function test_calculate_tax($amount, $taxAmount, $plaintiffType, $respondentType)
     {
@@ -23,7 +23,7 @@ class CalculateClaimTaxTest extends TestCase
         $this->assertEquals($taxAmount, $tax->amount());
     }
 
-    function testAmountsForTaxData()
+    function amountsForTaxData()
     {
         return [
             // Физ лица

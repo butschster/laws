@@ -21,12 +21,19 @@ class SimplePlaintText implements ElementInterface
     private $claim;
 
     /**
-     * @param Claim $claim
+     * @var string
      */
-    public function __construct(Claim $claim)
+    private $basisOfLoan;
+
+    /**
+     * @param Claim $claim
+     * @param string $basisOfLoan
+     */
+    public function __construct(Claim $claim, string $basisOfLoan)
     {
         $this->claim = $claim;
         $this->amount = $claim->amount();
+        $this->basisOfLoan = $basisOfLoan;
     }
 
     /**
@@ -37,8 +44,9 @@ class SimplePlaintText implements ElementInterface
     public function insertTo(AbstractContainer $container)
     {
         $container->addText(sprintf(
-            "Между Истцом и Ответчиком был заключен договор беспроцентного займа на сумму %s, что подтверждается распиской от %s",
+            "Между Истцом и Ответчиком был заключен договор беспроцентного займа на сумму %s, что подтверждается %s от %s",
             (string) $this->amount,
+            $this->basisOfLoan == 'voucher' ? 'распиской' : 'договором',
             format_date($this->claim->borrowingDate())
         ));
 
@@ -49,25 +57,39 @@ class SimplePlaintText implements ElementInterface
 
         $container->addText("Согласно ч. 1 ст. 810 ГК РФ, заемщик обязан возвратить займодавцу полученную сумму займа в срок и в порядке, которые предусмотрены договором займа.");
 
-        $amount = $this->claim->calculate();
         $returned = $this->claim->returnedAmounts();
+        $claimed = $this->claim->claimedAmounts();
+
         if ($returned->count() > 0) {
             $container->addText("Из суммы займа Ответчик возвратил:");
 
             $amounts = [];
-            foreach ($this->claim->returnedAmounts() as $amount) {
+            foreach ($returned as $amount) {
                 $amounts[] = sprintf('%s - %s', format_date($amount->date()), (string) $amount);
             }
 
             (new BulletList($amounts))->insertTo($container);
 
             $container->addTextBreak();
-
-            $container->addText(sprintf(
-                "Таким образом, Ответчик на день предъявления искового заявления имеет задолженность по основному обязательству в размере %s",
-                (string) new Amount($amount->percents()) /*$this->claim->residualAmount()*/
-            ));
         }
+
+        if ($claimed->count() > 0) {
+            $container->addText("В дополнение к текущему займу Ответчик занял:");
+
+            $amounts = [];
+            foreach ($claimed as $amount) {
+                $amounts[] = sprintf('%s - %s', format_date($amount->date()), (string) $amount);
+            }
+
+            (new BulletList($amounts))->insertTo($container);
+
+            $container->addTextBreak();
+        }
+
+        $container->addText(sprintf(
+            "Таким образом, Ответчик на день предъявления искового заявления имеет задолженность по основному обязательству в размере %s",
+            (string) new Amount($this->claim->calculate()->amount())
+        ));
 
         $container->addText("В соответствие с ч.1 ст.310 ГК РФ, односторонний отказ от исполнения обязательства и одностороннее изменение его условий не допускаются.");
 
@@ -76,7 +98,7 @@ class SimplePlaintText implements ElementInterface
         (new NumberedList([
             sprintf(
                 'Взыскать с Ответчика сумму задолженности по договору займа в размере %s',
-                (string) new Amount($amount->amountWithPercents())
+                (string) new Amount($this->claim->calculate()->amountWithPercents())
             ),
             "Судебные расходы возложить на Ответчика."
         ]))->insertTo($container);

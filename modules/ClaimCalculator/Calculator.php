@@ -2,34 +2,62 @@
 
 namespace Module\ClaimCalculator;
 
+use App\Law\AdditionalAmounts;
+use App\Law\AdditionalClaimAmount;
+use App\Law\InterestRate;
+use App\Law\ReturnedClaimAmount;
+use Carbon\Carbon;
 use Module\ClaimCalculator\Contracts\Calculator as CalculatorContract;
 use Module\ClaimCalculator\Contracts\Result as ResultContract;
 use Module\ClaimCalculator\Contracts\Strategy;
 use Module\ClaimCalculator\Exceptions\ClaimPercentsCalculator as ClaimPercentsCalculatorException;
-use App\Law\AdditionalClaimAmount;
-use App\Law\Claim;
-use App\Law\ReturnedClaimAmount;
-use Carbon\Carbon;
 
 class Calculator implements CalculatorContract
 {
-
-    /**
-     * @var Claim
-     */
-    private $claim;
-
     /**
      * @var array
      */
     private $summary = [];
 
     /**
-     * @param Claim $claim
+     * @var float
      */
-    public function __construct(Claim $claim)
+    private $amount;
+
+    /**
+     * @var InterestRate
+     */
+    private $rate;
+
+    /**
+     * @var Carbon
+     */
+    private $from;
+
+    /**
+     * @var Carbon
+     */
+    private $to;
+
+    /**
+     * @var AdditionalAmounts
+     */
+    private $amounts;
+
+    /**
+     * @param float $amount
+     * @param InterestRate $rate
+     * @param Carbon $from
+     * @param Carbon $to
+     * @param AdditionalAmounts|null $amounts
+     */
+    public function __construct(float $amount, InterestRate $rate, Carbon $from, Carbon $to, AdditionalAmounts $amounts = null)
     {
-        $this->claim = $claim;
+        $this->amount = $amount;
+        $this->rate = $rate;
+        $this->from = $from;
+        $this->to = $to;
+        $this->amounts = $amounts;
     }
 
     /**
@@ -39,55 +67,57 @@ class Calculator implements CalculatorContract
      */
     protected function calculatePercents(): float
     {
-        $percents = $this->claim->percents();
+        $percents = $this->rate->percents();
 
         if ($percents > 0) {
-            $startDate = $this->claim->borrowingDate();
-            $amount = $this->claim->amount()->amount();
+            $startDate = $this->from;
+            $amount = $this->amount;
 
             $totalPercentsAmount = 0;
 
-            $additionalAmounts = $this->claim->additionalAmounts();
+            if ($this->amounts) {
+                $additionalAmounts = $this->amounts;
 
-            // Если у нас есть доп займы или погашения, то сначала считаем проценты до их наступления
-            if ($additionalAmounts->count() > 0 && ($firstClaim = $additionalAmounts->first()) instanceof AdditionalClaimAmount) {
-                $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $firstClaim->date());
-                $startDate = $firstClaim->date();
-            }
+                // Если у нас есть доп займы или погашения, то сначала считаем проценты до их наступления
+                if ($additionalAmounts->count() > 0 && ($firstClaim = $additionalAmounts->first()) instanceof AdditionalClaimAmount) {
+                    $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $firstClaim->date());
+                    $startDate = $firstClaim->date();
+                }
 
-            $lastClaim = null;
+                $lastClaim = null;
 
-            // Расчитываем проценты с учетом отданных и полученых денег в течение срока
-            foreach ($additionalAmounts as $i => $item) {
-                // Если это дополнительный займ
-                if ($item instanceof AdditionalClaimAmount) {
-                    if ($lastClaim instanceof ReturnedClaimAmount) {
+                // Расчитываем проценты с учетом отданных и полученых денег в течение срока
+                foreach ($additionalAmounts as $i => $item) {
+                    // Если это дополнительный займ
+                    if ($item instanceof AdditionalClaimAmount) {
+                        if ($lastClaim instanceof ReturnedClaimAmount) {
+                            $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $item->date());
+                        }
+
+                        $amount += $item->amount();
+                        $nextClaim = $additionalAmounts->slice($i+1)->first();
+
+                        if ($nextClaim) {
+                            $totalPercentsAmount += $this->getStrategy($amount, $percents, $item->date(), $nextClaim->date());
+                            $startDate = $nextClaim->date();
+                        } else {
+                            $startDate = $item->date();
+                        }
+
+                    } else { // Если это частичный возврат
                         $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $item->date());
-                    }
 
-                    $amount += $item->amount();
-                    $nextClaim = $additionalAmounts->slice($i+1)->first();
-
-                    if ($nextClaim) {
-                        $totalPercentsAmount += $this->getStrategy($amount, $percents, $item->date(), $nextClaim->date());
-                        $startDate = $nextClaim->date();
-                    } else {
+                        $amount -= $item->amount();
                         $startDate = $item->date();
                     }
 
-                } else { // Если это частичный возврат
-                    $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $item->date());
 
-                    $amount -= $item->amount();
-                    $startDate = $item->date();
+                    $lastClaim = $item;
                 }
-
-
-                $lastClaim = $item;
             }
 
             // Расчет процентов по оставшимся на руках деньгах
-            $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $this->claim->returnDate());
+            $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $this->to);
 
             return $totalPercentsAmount;
         }
@@ -100,13 +130,15 @@ class Calculator implements CalculatorContract
      */
     public function calculate(): ResultContract
     {
-        $amount = $this->claim->amount()->amount();
+        $amount = $this->amount;
 
-        foreach ($this->claim->additionalAmounts() as $i => $item) {
-            if ($item instanceof AdditionalClaimAmount) {
-                $amount += $item->amount();
-            } else {
-                $amount -= $item->amount();
+        if ($this->amounts) {
+            foreach ($this->amounts as $i => $item) {
+                if ($item instanceof AdditionalClaimAmount) {
+                    $amount += $item->amount();
+                } else {
+                    $amount -= $item->amount();
+                }
             }
         }
 
@@ -147,6 +179,7 @@ class Calculator implements CalculatorContract
      */
     protected function makeStrategyClass(): string
     {
-        return 'Module\\ClaimCalculator\\Strategies\\'.ucfirst($this->claim->interval());
+        $interval = $this->rate->interval();
+        return 'Module\\ClaimCalculator\\Strategies\\'.ucfirst($interval);
     }
 }

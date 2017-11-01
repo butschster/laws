@@ -3,7 +3,7 @@
 namespace Module\FineCalculator;
 
 use App\FederalDistrict;
-use App\Law\Claim;
+use App\Law\AdditionalAmounts;
 use App\Law\ReturnedClaimAmount;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -12,27 +12,51 @@ use Module\FineCalculator\Contracts\Result as ResultContract;
 
 class Calculator implements CalculatorContract
 {
-
-    /**
-     * @var Claim
-     */
-    private $claim;
-
     /**
      * @var Rates
      */
     private $rates;
 
     /**
-     * Calculator constructor.
-     *
-     * @param Claim $claim
-     * @param FederalDistrict $district
+     * @var float
      */
-    public function __construct(Claim $claim, FederalDistrict $district)
+    private $amount;
+
+    /**
+     * @var AdditionalAmounts
+     */
+    private $amounts;
+
+    /**
+     * @var FederalDistrict
+     */
+    private $district;
+
+    /**
+     * @var Carbon
+     */
+    private $from;
+
+    /**
+     * @var Carbon
+     */
+    private $to;
+
+    /**
+     * @param float $amount
+     * @param Carbon $from
+     * @param Carbon $to
+     * @param FederalDistrict $district
+     * @param AdditionalAmounts|null $amounts
+     */
+    public function __construct(float $amount, Carbon $from, Carbon $to, FederalDistrict $district, AdditionalAmounts $amounts = null)
     {
-        $this->claim = $claim;
         $this->rates = new Rates($district);
+        $this->amount = $amount;
+        $this->amounts = $amounts;
+        $this->district = $district;
+        $this->from = $from;
+        $this->to = $to;
     }
 
     /**
@@ -40,7 +64,7 @@ class Calculator implements CalculatorContract
      */
     public function calculate(): ResultContract
     {
-        return new Result($this->claim->amount()->amount(), $this->makeIntervals());
+        return new Result($this->amount, $this->makeIntervals());
     }
 
     /**
@@ -48,9 +72,9 @@ class Calculator implements CalculatorContract
      */
     protected function makeIntervals(): IntervalsCollection
     {
-        $from = $this->claim->borrowingDate();
-        $returnDate = $this->claim->returnDate();
-        $amount = $this->claim->amount()->amount();
+        $from = $this->from;
+        $returnDate = $this->to;
+        $amount = $this->amount;
 
         /** @var Interval[] $intervals */
         $intervals = new IntervalsCollection();
@@ -71,19 +95,18 @@ class Calculator implements CalculatorContract
 
             $interval = new Interval($from, $to, $rate->rate(), $amount);
 
-            foreach (range($from->year, $to->year) as $year) {
-                $endOfYear = Carbon::create($year, 12, 31);
-                $newYear = clone $endOfYear;
+            if ($from->year < $to->year) {
+                foreach (range($from->year, $to->year) as $year) {
+                    $endOfYear = Carbon::create($year, 12, 31);
+                    $newYear = clone $endOfYear;
 
-                if ($rate->contains($endOfYear)) {
-
-                    $intervals->push(
-                        new Interval($from, $endOfYear, $rate->rate(), $amount)
-                    );
-
-                    $interval = new Interval($newYear->addDay(1), $to, $rate->rate(), $amount);
+                    if ($rate->contains($endOfYear)) {
+                        $intervals->push(new Interval($from, $endOfYear, $rate->rate(), $amount));
+                        $interval = new Interval($newYear->addDay(1), $to, $rate->rate(), $amount);
+                    }
                 }
             }
+
 
             $toSecond = clone $rate->to();
             $intervals->push($interval);
@@ -95,8 +118,10 @@ class Calculator implements CalculatorContract
             $from = $toSecond->addDay(1);
         }
 
-        $intervals = $this->calculateAdditionAmounts($intervals, $this->claim->returnedAmounts());
-        $intervals = $this->calculateAdditionAmounts($intervals, $this->claim->claimedAmounts());
+        if ($this->amounts) {
+            $intervals = $this->calculateAdditionAmounts($intervals, $this->amounts->returnedAmounts());
+            $intervals = $this->calculateAdditionAmounts($intervals, $this->amounts->claimedAmounts());
+        }
 
         return $intervals->sortByDate();
     }

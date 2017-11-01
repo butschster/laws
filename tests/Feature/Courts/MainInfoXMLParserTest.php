@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Courts;
 
 use App\Services\CBR\MainInfoXMLParser;
 use Tests\TestCase;

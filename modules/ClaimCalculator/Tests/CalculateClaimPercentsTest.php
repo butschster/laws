@@ -2,6 +2,7 @@
 
 namespace Module\ClaimCalculator\Tests;
 
+use App\Law\InterestRate;
 use Module\ClaimCalculator\Calculator as ClaimPercentsCalculator;
 use Module\ClaimCalculator\Result;
 use App\Law\Claim;
@@ -25,7 +26,13 @@ class CalculateClaimPercentsTest extends TestCase
     {
         $claim = new Claim($amount, Carbon::parse($borrow), Carbon::parse($return), $percent, $interval);
 
-        $calculator = new ClaimPercentsCalculator($claim);
+        $calculator = new ClaimPercentsCalculator(
+            $claim->amount()->amount(),
+            $claim->interestRate(),
+            $claim->borrowingDate(),
+            $claim->returnDate(),
+            $claim->additionalAmounts()
+        );
 
         $result = $calculator->calculate();
 
@@ -57,7 +64,13 @@ class CalculateClaimPercentsTest extends TestCase
         // Декабрь - 6 000
         // 01.01.18 Должны вернуть 92 000 процентов и 152 000 займа
 
-        $calculator = new ClaimPercentsCalculator($claim);
+        $calculator = new ClaimPercentsCalculator(
+            $claim->amount()->amount(),
+            $claim->interestRate(),
+            $claim->borrowingDate(),
+            $claim->returnDate(),
+            $claim->additionalAmounts()
+        );
 
         $result = $calculator->calculate();
 
@@ -89,7 +102,13 @@ class CalculateClaimPercentsTest extends TestCase
         // Декабрь - 14 000
         // 01.01.18 Должны вернуть 148 000 процентов и 100 000 займа
 
-        $calculator = new ClaimPercentsCalculator($claim);
+        $calculator = new ClaimPercentsCalculator(
+            $claim->amount()->amount(),
+            $claim->interestRate(),
+            $claim->borrowingDate(),
+            $claim->returnDate(),
+            $claim->additionalAmounts()
+        );
         $result = $calculator->calculate();
 
         $this->assertEquals(148000, $result->percents());
@@ -116,7 +135,13 @@ class CalculateClaimPercentsTest extends TestCase
         // 06.26 2200
         // 06.26 2200
 
-        $calculator = new ClaimPercentsCalculator($claim);
+        $calculator = new ClaimPercentsCalculator(
+            $claim->amount()->amount(),
+            $claim->interestRate(),
+            $claim->borrowingDate(),
+            $claim->returnDate(),
+            $claim->additionalAmounts()
+        );
         $result = $calculator->calculate();
 
         $this->assertEquals(22200, $result->percents());
@@ -131,7 +156,13 @@ class CalculateClaimPercentsTest extends TestCase
         $claim->addReturnedMoney(Carbon::parse('2016-09-20'), 20000);
         $claim->addReturnedMoney(Carbon::parse('2016-12-25'), 20000);
 
-        $calculator = new ClaimPercentsCalculator($claim);
+        $calculator = new ClaimPercentsCalculator(
+            $claim->amount()->amount(),
+            $claim->interestRate(),
+            $claim->borrowingDate(),
+            $claim->returnDate(),
+            $claim->additionalAmounts()
+        );
         $result = $calculator->calculate();
 
         $this->assertEquals(57451.62, $result->percents());
@@ -144,7 +175,13 @@ class CalculateClaimPercentsTest extends TestCase
 
         $claim->addClaimedMoney(Carbon::parse('2017-04-26'), 50000);
 
-        $calculator = new ClaimPercentsCalculator($claim);
+        $calculator = new ClaimPercentsCalculator(
+            $claim->amount()->amount(),
+            $claim->interestRate(),
+            $claim->borrowingDate(),
+            $claim->returnDate(),
+            $claim->additionalAmounts()
+        );
         $result = $calculator->calculate();
 
         $this->assertEquals(18000, $result->percents());
@@ -184,7 +221,7 @@ class CalculateClaimPercentsTest extends TestCase
                 '2017-01-01', // Дата выдачи
                 '2017-12-01', // Дата возврата
                 15, // Процент
-                Claim::MONTHLY, // Период начисления
+                InterestRate::MONTHLY, // Период начисления
                 165000, // Сумма набежавшик процентов
                 265000, // Общая сумма долга
             ],
@@ -193,7 +230,7 @@ class CalculateClaimPercentsTest extends TestCase
                 '2017-01-20', // Дата выдачи
                 '2017-03-10', // Дата возврата
                 15, // Процент
-                Claim::MONTHLY, // Период начисления
+                InterestRate::MONTHLY, // Период начисления
                 24124.42, // Сумма набежавшик процентов
                 124124.42, // Общая сумма долга
 
@@ -206,7 +243,7 @@ class CalculateClaimPercentsTest extends TestCase
                 '2017-01-01', // Дата выдачи
                 '2017-02-01', // Дата возврата
                 1, // Процент
-                Claim::DAILY, // Период начисления
+                InterestRate::DAILY, // Период начисления
                 31, // Сумма набежавшик процентов
                 131, // Общая сумма долга
             ],
@@ -215,7 +252,7 @@ class CalculateClaimPercentsTest extends TestCase
                 '2015-04-15', // Дата выдачи
                 '2017-06-26', // Дата возврата
                 10, // Процент
-                Claim::YEARLY, // Период начисления
+                InterestRate::YEARLY, // Период начисления
                 21968.04, // Сумма набежавшик процентов
                 121968.04, // Общая сумма долга
 
@@ -228,7 +265,7 @@ class CalculateClaimPercentsTest extends TestCase
                 '2015-01-01', // Дата выдачи
                 '2017-01-01', // Дата возврата
                 10, // Процент
-                Claim::YEARLY, // Период начисления
+                InterestRate::YEARLY, // Период начисления
                 20000, // Сумма набежавшик процентов
                 120000, // Общая сумма долга
             ],
@@ -237,7 +274,7 @@ class CalculateClaimPercentsTest extends TestCase
                 '2016-10-26', // Дата выдачи
                 '2016-11-26', // Дата возврата
                 3, // Процент
-                Claim::YEARLY, // Период начисления
+                InterestRate::YEARLY, // Период начисления
                 250, // Сумма набежавшик процентов
                 100250, // Общая сумма долга
             ],
@@ -246,7 +283,7 @@ class CalculateClaimPercentsTest extends TestCase
                 '2016-10-09', // Дата выдачи
                 '2016-11-09', // Дата возврата
                 12, // Процент
-                Claim::MONTHLY, // Период начисления
+                InterestRate::MONTHLY, // Период начисления
                 12000, // Сумма набежавшик процентов
                 112000, // Общая сумма долга
             ],
@@ -255,7 +292,7 @@ class CalculateClaimPercentsTest extends TestCase
                 '2017-04-10', // Дата выдачи
                 '2017-10-25', // Дата возврата
                 2, // Процент
-                Claim::MONTHLY, // Период начисления
+                InterestRate::MONTHLY, // Период начисления
                 12967.74, // Сумма набежавшик процентов
                 112967.74, // Общая сумма долга
             ],
@@ -264,7 +301,7 @@ class CalculateClaimPercentsTest extends TestCase
                 '2016-10-26', // Дата выдачи
                 '2017-01-26', // Дата возврата
                 3, // Процент
-                Claim::MONTHLY, // Период начисления
+                InterestRate::MONTHLY, // Период начисления
                 9000, // Сумма набежавшик процентов
                 109000, // Общая сумма долга
             ],

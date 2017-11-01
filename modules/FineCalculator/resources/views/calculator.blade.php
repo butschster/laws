@@ -5,12 +5,6 @@
         <h2 class="mb-3">Калькулятор для расчета процентов по займу</h2>
 
         <div class="g-brd-around g-brd-gray-light-v4 g-pa-30 g-mb-30">
-            <div class="form-group">
-                <select class="form-control" v-model="data.federal_district">
-                    <option :value="index" v-for="(name, index) in districts" v-text="name"></option>
-                </select>
-            </div>
-
             <div class="form-group form-row">
                 <div class="col">
                     <date-picker v-model="data.date_of_borrowing" :config="config"></date-picker>
@@ -18,6 +12,12 @@
                 <div class="col">
                     <date-picker v-model="data.date_of_return" :config="config"></date-picker>
                 </div>
+            </div>
+
+            <div class="form-group" v-if="need_federal_district">
+                <select class="form-control" v-model="data.federal_district">
+                    <option :value="index" v-for="(name, index) in districts" v-text="name"></option>
+                </select>
             </div>
 
             <div class="form-group">
@@ -263,6 +263,25 @@
 
                 LabelDateOfReturn() {
                     return 'Дата возврата денег';
+                },
+
+                need_federal_district() {
+                    var date_of_borrowing = moment(this.data.date_of_borrowing, 'DD.MM.YYYY')
+                    var date_of_return = moment(this.data.date_of_return, 'DD.MM.YYYY')
+
+                    if (date_of_borrowing.isBetween('2015-06-01', '2016-07-28')) {
+                        return true;
+                    }
+
+                    if (date_of_return.isBetween('2015-06-01', '2016-07-28')) {
+                        return true;
+                    }
+
+                    if (date_of_borrowing.isSameOrBefore('2015-06-01') && date_of_return.isSameOrAfter('2015-06-01')) {
+                        return true;
+                    }
+
+                    return false;
                 }
             }
         })

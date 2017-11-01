@@ -11,15 +11,29 @@ use Tests\TestCase;
 class CalculatorTest extends TestCase
 {
 
-    function test_make_intervals()
+    /**
+     * @dataProvider calculatorAmountsProvider
+     */
+    function test_make_intervals($amount, $percents, $from, $to)
     {
         $district = new FederalDistrict();
         $district->id = 1;
 
-        $claim = new Claim(10000, Carbon::parse('2014-01-01'), Carbon::parse('2016-09-01'));
-        $calculator = new Calculator($claim, $district);
+        $calculator = new Calculator($amount, Carbon::parse($from), Carbon::parse($to), $district);
 
-        $this->assertEquals(2322.32, $calculator->calculate()->percents());
+        $this->assertEquals($percents, $calculator->calculate()->percents());
+    }
+
+    function calculatorAmountsProvider()
+    {
+        return [
+            [
+                10000, 2322.32, '2014-01-01', '2016-09-01'
+            ],
+            [
+                1000, 7.43, '2017-10-01', '2017-11-01'
+            ]
+        ];
     }
 
     function test_make_intervals_with_returned_money()
@@ -31,7 +45,13 @@ class CalculatorTest extends TestCase
         $claim->addReturnedMoney(Carbon::parse('2015-07-01'), 20000);
         $claim->addReturnedMoney(Carbon::parse('2015-08-20'), 20000);
 
-        $calculator = new Calculator($claim, $district);
+        $calculator = new Calculator(
+            $claim->amount()->amount(),
+            $claim->borrowingDate(),
+            $claim->returnDate(),
+            $district,
+            $claim->additionalAmounts()
+        );
 
         $intervals = $calculator->calculate()->intervals();
 
@@ -90,7 +110,13 @@ class CalculatorTest extends TestCase
         $claim->addClaimedMoney(Carbon::parse('2015-07-01'), 20000);
         $claim->addClaimedMoney(Carbon::parse('2015-08-20'), 20000);
 
-        $calculator = new Calculator($claim, $district);
+        $calculator = new Calculator(
+            $claim->amount()->amount(),
+            $claim->borrowingDate(),
+            $claim->returnDate(),
+            $district,
+            $claim->additionalAmounts()
+        );
 
         $intervals = $calculator->calculate()->intervals();
 
@@ -149,7 +175,13 @@ class CalculatorTest extends TestCase
         $claim->addClaimedMoney(Carbon::parse('2016-11-15'), 50000);
         $claim->addReturnedMoney(Carbon::parse('2016-10-30'), 20000);
 
-        $calculator = new Calculator($claim, $district);
+        $calculator = new Calculator(
+            $claim->amount()->amount(),
+            $claim->borrowingDate(),
+            $claim->returnDate(),
+            $district,
+            $claim->additionalAmounts()
+        );
 
         $intervals = $calculator->calculate()->intervals();
 

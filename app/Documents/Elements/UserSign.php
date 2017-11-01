@@ -37,7 +37,7 @@ class UserSign implements ElementInterface
      */
     public function insertTo(AbstractContainer $container)
     {
-        $container->addText(now()->format('«d» F Y г.'));
+        $container->addText(now()->formatLocalized('«%d» %B %Y г.'));
 
         $container->addText(sprintf(
             '%s _______________________________ %s',

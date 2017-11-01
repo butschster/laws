@@ -13,10 +13,6 @@ use Illuminate\Support\Collection;
  */
 class Claim
 {
-    const MONTHLY = 'monthly';
-    const DAILY = 'daily';
-    const YEARLY = 'yearly';
-    const WEEKLY = 'weekly';
 
     /**
      * @var ClaimAmount
@@ -34,36 +30,45 @@ class Claim
     private $returnDate;
 
     /**
-     * @var int
-     */
-    private $percents;
-
-    /**
-     * @var string
-     */
-    private $interval;
-
-    /**
-     * @var Collection|AdditionalClaimAmount[]|ReturnedClaimAmount
+     * @var AdditionalAmounts|AdditionalClaimAmount[]|ReturnedClaimAmount
      */
     private $additionalAmounts = [];
+
+    /**
+     * Процентная ставка за пользование
+     *
+     * @var InterestRate
+     */
+    private $interestRate;
+
+    /**
+     * Неустойка за несвоевременный возврат суммы займа
+     *
+     * @var InterestRate
+     */
+    private $forfeit;
 
     /**
      * @param float $amount Сумма займа
      * @param Carbon $borrowingDate Дата выдачи
      * @param Carbon $returnDate Дата возврата
-     * @param int $percents Процент
+     * @param float $percents Процент
      * @param string $interval Период начисления
      */
-    public function __construct(float $amount = 0, Carbon $borrowingDate, Carbon $returnDate, int $percents = 0, string $interval = self::MONTHLY)
-    {
+    public function __construct(
+        float $amount = 0,
+        Carbon $borrowingDate,
+        Carbon $returnDate,
+        float $percents = 0,
+        string $interval = InterestRate::MONTHLY
+    ) {
         $this->additionalAmounts = new AdditionalAmounts();
         $this->amount = new ClaimAmount($amount);
 
         $this->borrowingDate = $borrowingDate;
         $this->returnDate = $returnDate;
-        $this->percents = $percents;
-        $this->interval = $interval;
+
+        $this->interestRate = new InterestRate($percents, $interval);
     }
 
     /**
@@ -133,23 +138,31 @@ class Claim
     }
 
     /**
-     * Проверка, является ли займ процентным
-     *
-     * @return bool
+     * @return InterestRate
      */
-    public function hasPercents(): bool
+    public function interestRate(): InterestRate
     {
-        return $this->percents() > 0;
+        return $this->interestRate;
     }
 
     /**
-     * Получение процентной ставки
-     *
-     * @return int
+     * @return bool
      */
-    public function percents(): int
+    public function hasForfeit(): bool
     {
-        return $this->percents;
+        return $this->forfeit instanceof InterestRate;
+    }
+
+    /**
+     * Установка неустойки за несвоевременный возврат суммы займа
+     *
+     * @param float $percents Процентная ставка
+     * @param string $interval Период начисления
+     * @return void
+     */
+    public function setForfeit(float $percents, string $interval = InterestRate::MONTHLY)
+    {
+        $this->forfeit = new InterestRate($percents, $interval);
     }
 
     /**
@@ -173,23 +186,40 @@ class Claim
     }
 
     /**
-     * Получение периода начисления
-     *
-     * @return string
-     */
-    public function interval(): string
-    {
-        return $this->interval;
-    }
-
-    /**
      * Получение расчитанной суммы процентов по займу
      *
      * @return \Module\ClaimCalculator\Contracts\Result
      */
     public function calculate(): \Module\ClaimCalculator\Contracts\Result
     {
-        return (new \Module\ClaimCalculator\Calculator($this))->calculate();
+        $calculator = new \Module\ClaimCalculator\Calculator(
+            $this->amount->amount(),
+            $this->interestRate,
+            $this->borrowingDate(),
+            $this->returnDate,
+            $this->additionalAmounts()
+        );
+
+        return $calculator->calculate();
+    }
+
+    /**
+     * Получение расчитанной суммы пени по займу
+     *
+     * @return \Module\ClaimCalculator\Contracts\Result
+     */
+    public function calculatePennies(): \Module\ClaimCalculator\Contracts\Result
+    {
+        $result = $this->calculate();
+
+        $calculator = new \Module\ClaimCalculator\Calculator(
+            $result->amount(),
+            $this->forfeit,
+            $this->returnDate(),
+            now()
+        );
+
+        return $calculator->calculate();
     }
 
     /**
@@ -201,7 +231,17 @@ class Claim
      */
     public function calculate395(FederalDistrict $district): \Module\FineCalculator\Contracts\Result
     {
-        return (new \Module\FineCalculator\Calculator($this, $district))->calculate();
+        $result = $this->calculate();
+
+        $calculator = new \Module\FineCalculator\Calculator(
+            $result->amount(),
+            $this->returnDate(),
+            now(),
+            $district,
+            $this->additionalAmounts()
+        );
+
+        return $calculator->calculate();
     }
 
     /**

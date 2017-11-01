@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Law\Claim;
+use App\Law\InterestRate;
 use App\Law\Person;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -33,6 +34,8 @@ class ClaimController extends Controller
 
     public function send(Request $request, PhpWord $phpWord)
     {
+        $ruleIntervals = Rule::in(InterestRate::intervals());
+
         $validator = Validator::make($request->all(), [
             'amount' => 'required|numeric|min:0',
             'basis_of_loan' => ['required', Rule::in(['voucher', 'contract'])],
@@ -40,18 +43,10 @@ class ClaimController extends Controller
             'date_of_return' => 'required|date_format:d.m.Y|after:date_of_borrowing',
             'date_of_signing' => 'required|date_format:d.m.Y',
 
-            'has_forfeit' => 'boolean',
-            'forfeit.type' => ['required_if:has_forfeit,true', Rule::in(['fine', 'mulct'])],
-            'forfeit.mulct' => 'required_if:forfeit.type,mulct|numeric|min:0',
-            'forfeit.fine.interval' => ['required_if:forfeit.type,fine', Rule::in(['daily', 'weekly', 'monthly', 'yearly'])],
-            'forfeit.fine.percent' => 'required_if:forfeit.type,fine|numeric|min:0|max:100',
-
             // Процентная ставка
             'is_interest_bearing_loan' => 'boolean',
             'interest_bearing_loan' => 'array',
-            'interest_bearing_loan.interval' => ['required_if:is_interest_bearing_loan,true', Rule::in([
-                Claim::DAILY, Claim::WEEKLY, Claim::MONTHLY, Claim::YEARLY
-            ])],
+            'interest_bearing_loan.interval' => ['required_if:is_interest_bearing_loan,true', $ruleIntervals],
             'interest_bearing_loan.percent' => 'required_if:is_interest_bearing_loan,true|numeric|min:0|max:100',
 
             'plaintiff.type' => ['required', Rule::in(Person::types())],
@@ -71,7 +66,25 @@ class ClaimController extends Controller
             // Дополнительные займы
             'has_claimed_money' => 'required|boolean',
             'claimed_money' => 'array',
+
+            'has_forfeit' => 'boolean',
+            'forfeit.type' => ['required_if:has_forfeit,true', Rule::in(['fine', 'mulct'])],
         ], [], trans('claim.fields'));
+
+        $validator->sometimes('forfeit.fine.interval', ['required', $ruleIntervals], function ($input) {
+            $data = $input->toArray();
+            return (bool) array_get($data, 'has_forfeit', false) && array_get($data, 'forfeit.type') == 'fine';
+        });
+
+        $validator->sometimes('forfeit.fine.percent', 'required|numeric|min:0|max:100', function ($input) {
+            $data = $input->toArray();
+            return (bool) array_get($data, 'has_forfeit', false) && array_get($data, 'forfeit.type') == 'fine';
+        });
+
+        $validator->sometimes('forfeit.mulct', 'required|numeric|min:0', function ($input) {
+            $data = $input->toArray();
+            return (bool) array_get($data, 'has_forfeit', false) && array_get($data, 'forfeit.type') == 'mulct';
+        });
 
         foreach (['respondent', 'plaintiff'] as $person) {
             $validator->sometimes($person.'.phone', 'phone', function ($input) use ($person) {
@@ -95,6 +108,7 @@ class ClaimController extends Controller
             });
         }
 
+
         $validator->validate();
 
         $data = $validator->getData();
@@ -105,7 +119,7 @@ class ClaimController extends Controller
 
         $document->addElement(
             new \App\Documents\Elements\Header(
-                \App\Court::first(),
+                $court,
                 $plaintiff = \App\Law\Plaintiff::fromArray($data['plaintiff']),
                 $respondent = \App\Law\Respondent::fromArray($data['respondent']),
                 $claim = new Claim(
@@ -140,9 +154,14 @@ class ClaimController extends Controller
             }
         }
 
+        $forfeitType = array_get($data, 'forfeit.type');
+        if ((bool) $data['has_forfeit'] && $forfeitType == 'fine') {
+            $claim->setForfeit(array_get($data, 'forfeit.percent'), array_get($data, 'forfeit.interval'));
+        }
+
         $document->addElement(
             new \App\Documents\Elements\SimplePlaintText(
-                $claim
+                $claim, $data['basis_of_loan']
             )
         );
 

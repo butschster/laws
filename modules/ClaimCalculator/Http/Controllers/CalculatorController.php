@@ -4,6 +4,7 @@ namespace Module\ClaimCalculator\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Law\Claim;
+use App\Law\InterestRate;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Module\ClaimCalculator\Http\Resources\Calculator as CalculatorResource;
@@ -34,7 +35,7 @@ class CalculatorController extends Controller
             // Процентная ставка
             'is_interest_bearing_loan' => 'boolean',
             'interest_bearing_loan' => 'array',
-            'interest_bearing_loan.interval' => ['required_if:is_interest_bearing_loan,true', Rule::in([Claim::DAILY, Claim::WEEKLY, Claim::MONTHLY, Claim::YEARLY])],
+            'interest_bearing_loan.interval' => ['required_if:is_interest_bearing_loan,true', Rule::in(InterestRate::intervals())],
             'interest_bearing_loan.percent' => 'required_if:is_interest_bearing_loan,true|numeric|min:0|max:100',
 
             // Частичное погашение займа

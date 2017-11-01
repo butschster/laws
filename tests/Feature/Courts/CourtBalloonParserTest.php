@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature;
+namespace Tests\Feature\Courts;
 
 use App\Services\Crawler\Parsers\CourtBalloonParser;
 use Tests\TestCase;

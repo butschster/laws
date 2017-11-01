@@ -128,7 +128,7 @@ class Amount implements ElementInterface
         return sprintf(
             "%s руб. %s коп.",
             number_format($this->rubles(), 0, ',', ' '),
-            $this->pennies()
+            $this->pennies() > 9 ? $this->pennies() : '0'.$this->pennies()
         );
     }
 }
