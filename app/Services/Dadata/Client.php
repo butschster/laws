@@ -2,6 +2,7 @@
 
 namespace App\Services\Dadata;
 
+use App\Exceptions\AddressNotFound;
 use Illuminate\Support\Collection;
 
 class Client implements ClientInterface
@@ -32,6 +33,7 @@ class Client implements ClientInterface
      * @param string $address
      *
      * @return Collection
+     * @throws AddressNotFound
      */
     public function suggest(string $address): Collection
     {
@@ -50,6 +52,12 @@ class Client implements ClientInterface
 
         $data = \GuzzleHttp\json_decode($jsonString, true);
 
-        return collect(array_get($data, 'suggestions'));
+        $addresses = collect(array_get($data, 'suggestions'));
+
+        if ($addresses->count() == 0) {
+            throw new AddressNotFound($address);
+        }
+
+        return $addresses;
     }
 }

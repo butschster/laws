@@ -147,6 +147,14 @@ class Person implements PersonContract, ElementInterface
     /**
      * @return string
      */
+    public function factAddress(): string
+    {
+        return $this->factAddress ?: $this->address;
+    }
+
+    /**
+     * @return string
+     */
     public function phone(): string
     {
         return $this->phone;

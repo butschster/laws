@@ -63,11 +63,21 @@ class Court extends Model
     }
 
     /**
+     * Получение федерального округа
+     *
      * @return FederalDistrict
      */
     public function federalDistrict()
     {
         return $this->region->federalDistrict;
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function kladr()
+    {
+        return $this->hasOne(CourtKladr::class);
     }
 
     /**
@@ -92,6 +102,5 @@ class Court extends Model
         $builder->where(function ($builder) use ($days) {
             $builder->whereNull('synced_at')->orwhere('synced_at', '<', now()->subDays($days)->toDateString());
         });
-
     }
 }
