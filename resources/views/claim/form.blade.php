@@ -41,9 +41,15 @@
 
             <div class="form-group">
                 <label>Сумма займа</label>
-                <input class="form-control" v-model.number="data.amount" type="number" validation-key="amount">
 
-                <div v-text="amountHelpText" class="form-text text-muted"></div>
+                <div class="form-inline">
+                    <div class="input-group">
+                        <input class="form-control" v-model.number="data.amount" type="number" validation-key="amount">
+                        <div class="input-group-addon justify-content-center">руб.</div>
+                    </div>
+
+                    <div v-text="amountHelpText" class="form-text text-muted"></div>
+                </div>
             </div>
 
             <hr>
@@ -74,11 +80,15 @@
                             </div>
                             <div class="col">
                                 <label>Сумма</label>
-                                <input
-                                        class="form-control"
-                                       v-model.number="row.amount"
-                                       type="number"
-                                       :validation-key="'partly_returned_money.'+index+'.amount'">
+
+                                <div class="input-group">
+                                    <input
+                                            class="form-control"
+                                            v-model.number="row.amount"
+                                            type="number"
+                                            :validation-key="'partly_returned_money.'+index+'.amount'">
+                                    <div class="input-group-addon justify-content-center">руб.</div>
+                                </div>
                             </div>
                         </div>
                     </li>
@@ -116,11 +126,15 @@
                             </div>
                             <div class="col">
                                 <label>Сумма</label>
-                                <input
-                                        class="form-control"
-                                        v-model.number="row.amount"
-                                        type="number"
-                                        validation-key="'claimed_money.'+index'.amount'">
+
+                                <div class="input-group">
+                                    <input
+                                            class="form-control"
+                                            v-model.number="row.amount"
+                                            type="number"
+                                            validation-key="'claimed_money.'+index'.amount'">
+                                    <div class="input-group-addon justify-content-center">руб.</div>
+                                </div>
                             </div>
                         </div>
                     </li>
@@ -253,16 +267,21 @@
 
         <div class="form-group">
             <label v-text="LabelPhone"></label>
-            <input type="text" class="form-control" v-model="data.phone" :validation-key="vkey+'.phone'">
+
+            <masked-input v-model="data.phone" class="form-control" mask="\+7 (111) 111-11-11" :validation-key="vkey+'.phone'"></masked-input>
         </div>
     </div>
 </script>
 
 <script type="text/x-template" id="percents-form-template">
-    <div>
+    <div class="form-inline">
         <div class="form-group">
-            <label>Процентная ставка</label>
-            <input class="form-control" v-model.number="data.percent" type="number">
+            <label class="mr-3">Процентная ставка</label>
+
+            <div class="input-group mr-3">
+                <input class="form-control text-right" v-model.number="data.percent" type="number" min="0" max="100">
+                <div class="input-group-addon justify-content-center">%</div>
+            </div>
         </div>
 
         <div class="form-group">

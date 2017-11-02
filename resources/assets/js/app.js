@@ -2,7 +2,10 @@ require('./bootstrap');
 require('./vue/mixins');
 
 import Datepicker from 'vue-bootstrap-datetimepicker';
+import MaskedInput from 'vue-masked-input'
+
 Vue.use(Datepicker);
+Vue.component('MaskedInput', MaskedInput);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
