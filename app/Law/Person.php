@@ -34,10 +34,8 @@ class Person implements PersonContract, ElementInterface
     {
         return new static(
             array_get($data, 'name'),
-            array_get($data, 'address'),
-            array_get($data, 'phone'),
-            array_get($data, 'fact_address'),
-            array_get($data, 'type', self::TYPE_INDIVIDUAL)
+            array_get($data, 'type', self::TYPE_INDIVIDUAL),
+            array_only($data, 'address', 'phone', 'fact_address', 'email', 'fax', 'ogrn')
         );
     }
 
@@ -49,37 +47,23 @@ class Person implements PersonContract, ElementInterface
     /**
      * @var string
      */
-    private $address;
-
-    /**
-     * @var string
-     */
-    private $phone;
-
-    /**
-     * @var string
-     */
-    private $factAddress;
-
-    /**
-     * @var string
-     */
     private $type;
 
     /**
-     * @param string $name ФИО
-     * @param string $address Юридический адрес / Адрес прописки
-     * @param string $phone Контактный телефон
-     * @param string|null $factAddress Фактический адрес / Адрес прожимания
-     * @param string $type Тип (физ лицо, Юр лицо, ИП)
+     * @var array
      */
-    public function __construct(string $name, string $address, string $phone = null, string $factAddress = null, string $type = self::TYPE_INDIVIDUAL)
+    private $contacts;
+
+    /**
+     * @param string $name ФИО
+     * @param string $type Тип (физ лицо, Юр лицо, ИП)
+     * @param array $contacts
+     */
+    public function __construct(string $name, string $type = self::TYPE_INDIVIDUAL, array $contacts)
     {
         $this->name = $name;
-        $this->address = $address;
-        $this->phone = $phone;
-        $this->factAddress = $factAddress;
         $this->type = $type;
+        $this->contacts = $contacts;
     }
 
     /**
@@ -141,7 +125,7 @@ class Person implements PersonContract, ElementInterface
      */
     public function address(): string
     {
-        return $this->address;
+        return array_get($this->contacts, 'address');
     }
 
     /**
@@ -149,7 +133,9 @@ class Person implements PersonContract, ElementInterface
      */
     public function factAddress(): string
     {
-        return $this->factAddress ?: $this->address;
+        $factAddress = array_get($this->contacts, 'factAddress');
+
+        return $factAddress ?: $this->address();
     }
 
     /**
@@ -157,7 +143,23 @@ class Person implements PersonContract, ElementInterface
      */
     public function phone(): string
     {
-        return $this->phone;
+        return array_get($this->contacts, 'phone');
+    }
+
+    /**
+     * @return string
+     */
+    public function ogrn(): string
+    {
+        return array_get($this->contacts, 'ogrn');
+    }
+
+    /**
+     * @return string
+     */
+    public function email(): string
+    {
+        return array_get($this->contacts, 'email');
     }
 
     /**
@@ -191,15 +193,31 @@ class Person implements PersonContract, ElementInterface
      */
     public function __toString()
     {
-        $text = '%s, место жительства: %s';
-        $phone = $this->phone();
-        if ( !empty($phone)) {
-            $text .= ', контактный телефон: %s';
+        if ($this->isIndividual()) {
+            $text = '%s, место жительства: %s';
+        } else {
+            $text = '%s, место нахождения: %s';
+
+            if ($this->isIndividualBusiness()) {
+                $text .= sprintf(', ОГРНИП: %s', $this->ogrn());
+            } else {
+                $text .= sprintf(', ОГРН: %s', $this->ogrn());
+            }
         }
 
-        $factAddress = $this->factAddress;
+        $phone = $this->phone();
+        if ( !empty($phone)) {
+            $text .= sprintf(', контактный телефон: %s', $phone);
+        }
+
+        $email = $this->email();
+        if ( !empty($email)) {
+            $text .= sprintf(', электронная почта: %s', $email);
+        }
+
+        $factAddress = $this->factAddress();
         if ( !empty($factAddress)) {
-            $text .= ', адрес для корреспонденции: %s';
+            $text .= sprintf(', адрес для корреспонденции: %s', $factAddress);
         }
 
         $text .= '.';
@@ -207,9 +225,7 @@ class Person implements PersonContract, ElementInterface
         return sprintf(
             $text,
             $this->fullName(),
-            $this->address(),
-            $phone,
-            $factAddress
+            $this->address()
         );
     }
 }

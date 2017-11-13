@@ -1,17 +1,18 @@
 <?php
 
-namespace App\Law;
+namespace App\Law\Claim;
 
+use App\Law\Person;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
-class Respondent extends Person
+class Plaintiff extends Person
 {
     /**
      * @return string
      */
     public function title(): string
     {
-        return 'Ответчик';
+        return 'Истец';
     }
 
     /**

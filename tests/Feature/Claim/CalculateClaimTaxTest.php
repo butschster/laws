@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Claim;
 
-use App\Law\ClaimTax;
+use App\Law\Claim\ClaimTax;
 use App\Law\Person;
-use App\Law\Plaintiff;
-use App\Law\Respondent;
+use App\Law\Claim\Plaintiff;
+use App\Law\Claim\Respondent;
 use Tests\TestCase;
 
 class CalculateClaimTaxTest extends TestCase
@@ -15,8 +15,8 @@ class CalculateClaimTaxTest extends TestCase
      */
     function test_calculate_tax($amount, $taxAmount, $plaintiffType, $respondentType)
     {
-        $plaintiff = new Plaintiff('ФИО', 'Адрес', null, null, $plaintiffType);
-        $respondent = new Respondent('ФИО', 'Адрес', null, null, $respondentType);
+        $plaintiff = new Plaintiff('ФИО', $plaintiffType, ['address' => 'Адрес', null, null, ]);
+        $respondent = new Respondent('ФИО', $respondentType, ['address' => 'Адрес', null, null, ]);
 
         $tax = new ClaimTax($amount, $plaintiff, $respondent);
 

@@ -52,11 +52,13 @@ class ClaimController extends Controller
             'plaintiff.type' => ['required', Rule::in(Person::types())],
             'plaintiff.name' => 'required|fio',
             'plaintiff.address' => 'required|address',
+            'plaintiff.ogrn' => 'required_unless:plaintiff.type,1|size:13',
             'plaintiff.has_fact_address' => 'boolean',
 
             'respondent.type' => ['required', Rule::in(Person::types())],
             'respondent.name' => 'required|fio',
             'respondent.address' => 'required|address',
+            'respondent.ogrn' => 'required_unless:respondent.type,1|size:13',
             'respondent.has_fact_address' => 'boolean',
 
             // Частичное погашение займа
@@ -93,6 +95,12 @@ class ClaimController extends Controller
                 return !empty($phone);
             });
 
+            $validator->sometimes($person.'.email', 'email', function ($input) use ($person) {
+                $email = array_get($input->toArray(), $person.'.email');
+
+                return !empty($email);
+            });
+
             $validator->sometimes($person.'.fact_address', 'required|address', function ($input) use ($person) {
                 return (bool) array_get($input->toArray(), $person.'.has_fact_address', false);
             });
@@ -113,23 +121,30 @@ class ClaimController extends Controller
 
         $data = $validator->getData();
 
+        $claim = new Claim(
+            $data['amount'],
+            custom_date($data['date_of_borrowing']),
+            custom_date($data['date_of_return']),
+            array_get($data, 'interest_bearing_loan.percent'),
+            array_get($data, 'interest_bearing_loan.interval')
+        );
+
+        $claim->setParticipants(
+            $plaintiff = \App\Law\Plaintiff::fromArray($data['plaintiff']),
+            $respondent = \App\Law\Respondent::fromArray($data['respondent'])
+        );
+
         $document = new \App\Documents\SimpleDocument($phpWord);
 
-        $court = \App\Court::first();
-
         $document->addElement(
-            new \App\Documents\Elements\Header(
-                $court,
-                $plaintiff = \App\Law\Plaintiff::fromArray($data['plaintiff']),
-                $respondent = \App\Law\Respondent::fromArray($data['respondent']),
+            new \App\Law\Claim\Header(
                 $claim = new Claim(
                     $data['amount'],
                     custom_date($data['date_of_borrowing']),
                     custom_date($data['date_of_return']),
                     array_get($data, 'interest_bearing_loan.percent'),
                     array_get($data, 'interest_bearing_loan.interval')
-                ),
-                $tax = $claim->calculateTax($plaintiff, $respondent)
+                )
             )
         );
 

@@ -2,10 +2,10 @@
 
 namespace Module\ClaimCalculator;
 
-use App\Law\AdditionalAmounts;
-use App\Law\AdditionalClaimAmount;
+use App\Law\Claim\AdditionalAmounts;
+use App\Law\Claim\AdditionalAmount;
 use App\Law\InterestRate;
-use App\Law\ReturnedClaimAmount;
+use App\Law\Claim\ReturnedAmount;
 use Carbon\Carbon;
 use Module\ClaimCalculator\Contracts\Calculator as CalculatorContract;
 use Module\ClaimCalculator\Contracts\Result as ResultContract;
@@ -79,7 +79,7 @@ class Calculator implements CalculatorContract
                 $additionalAmounts = $this->amounts;
 
                 // Если у нас есть доп займы или погашения, то сначала считаем проценты до их наступления
-                if ($additionalAmounts->count() > 0 && ($firstClaim = $additionalAmounts->first()) instanceof AdditionalClaimAmount) {
+                if ($additionalAmounts->count() > 0 && ($firstClaim = $additionalAmounts->first()) instanceof AdditionalAmount) {
                     $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $firstClaim->date());
                     $startDate = $firstClaim->date();
                 }
@@ -89,8 +89,8 @@ class Calculator implements CalculatorContract
                 // Расчитываем проценты с учетом отданных и полученых денег в течение срока
                 foreach ($additionalAmounts as $i => $item) {
                     // Если это дополнительный займ
-                    if ($item instanceof AdditionalClaimAmount) {
-                        if ($lastClaim instanceof ReturnedClaimAmount) {
+                    if ($item instanceof AdditionalAmount) {
+                        if ($lastClaim instanceof ReturnedAmount) {
                             $totalPercentsAmount += $this->getStrategy($amount, $percents, $startDate, $item->date());
                         }
 
@@ -134,7 +134,7 @@ class Calculator implements CalculatorContract
 
         if ($this->amounts) {
             foreach ($this->amounts as $i => $item) {
-                if ($item instanceof AdditionalClaimAmount) {
+                if ($item instanceof AdditionalAmount) {
                     $amount += $item->amount();
                 } else {
                     $amount -= $item->amount();

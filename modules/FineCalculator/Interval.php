@@ -3,7 +3,7 @@
 namespace Module\FineCalculator;
 
 use App\Law\Amount;
-use App\Law\ReturnedClaimAmount;
+use App\Law\Claim\ReturnedAmount;
 use Carbon\Carbon;
 use Module\FineCalculator\Contracts\Interval as IntervalContract;
 
@@ -122,7 +122,7 @@ class Interval implements IntervalContract
      */
     public function consider(Amount $amount)
     {
-        if ($amount instanceof ReturnedClaimAmount) {
+        if ($amount instanceof ReturnedAmount) {
             $this->amount -= $amount->amount();
         } else {
             $this->amount += $amount->amount();

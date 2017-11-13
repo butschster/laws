@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Law;
+namespace App\Law\Claim;
 
+use App\Law\Amount;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
 class ClaimAmount extends Amount

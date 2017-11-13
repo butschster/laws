@@ -131,37 +131,8 @@
         </div>
     </div>
 </script>
-<script type="text/x-template" id="percents-form-template">
-    <div>
-        <div class="form-group">
-            <label>Процентная ставка</label>
-            <input class="form-control" v-model.number="data.percent" type="number">
-        </div>
 
-        <div class="form-group">
-            <label class="custom-control custom-radio">
-                <input type="radio" v-model="data.interval" name="key" value="daily" class="custom-control-input">
-                <span class="custom-control-indicator"></span>
-                <span class="custom-control-description">Ежедневно</span>
-            </label>
-            <label class="custom-control custom-radio">
-                <input type="radio" v-model="data.interval" name="key" value="weekly" class="custom-control-input">
-                <span class="custom-control-indicator"></span>
-                <span class="custom-control-description">Еженедельно</span>
-            </label>
-            <label class="custom-control custom-radio">
-                <input type="radio" v-model="data.interval" name="key" value="monthly" class="custom-control-input">
-                <span class="custom-control-indicator"></span>
-                <span class="custom-control-description">Ежемесячно</span>
-            </label>
-            <label class="custom-control custom-radio">
-                <input type="radio" v-model="data.interval" name="key" value="yearly" class="custom-control-input">
-                <span class="custom-control-indicator"></span>
-                <span class="custom-control-description">Ежегодно</span>
-            </label>
-        </div>
-    </div>
-</script>
+@include('claim.partials.percents')
 
 <script type="text/x-template" id="table-summary-template">
     <tr>
@@ -193,20 +164,6 @@
                     return this.data.percents.toMoney();
                 }
             }
-        });
-
-        Vue.component('percents-form', {
-            props: {
-                'form-key': {
-                    required: true,
-                    type: String
-                },
-                data: {
-                    required: true,
-                    type: Object
-                }
-            },
-            template: '#percents-form-template',
         });
 
         Vue.component('calculator-form', {

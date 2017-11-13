@@ -4,6 +4,8 @@ namespace App\Law;
 
 use App\Contracts\Documents\ElementInterface;
 use App\Court as CourtModel;
+use App\Law\Claim\Plaintiff;
+use App\Law\Claim\Respondent;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 

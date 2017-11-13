@@ -25,6 +25,7 @@ class Court extends Model
         return [
             static::TYPE_COMMON => 'Суд общей юрисдикции',
             static::TYPE_MIR => 'Мировой суд',
+            static::TYPE_ARBITR_OKRUG => 'Арбитражный суд',
         ];
     }
 
@@ -41,6 +42,30 @@ class Court extends Model
     protected $casts = [
         'email' => 'array',
     ];
+
+    /**
+     * @return bool
+     */
+    public function isArbitrage()
+    {
+        return $this->type == static::TYPE_ARBITR_OKRUG;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isCommon()
+    {
+        return $this->type == static::TYPE_COMMON;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMir()
+    {
+        return $this->type == static::TYPE_MIR;
+    }
 
     /**
      * Получение списка подсудностей

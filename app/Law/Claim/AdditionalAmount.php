@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Law;
+namespace App\Law\Claim;
 
+use App\Law\Amount;
 use Carbon\Carbon;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
-class ReturnedClaimAmount extends Amount
+class AdditionalAmount extends Amount
 {
     /**
      * @var Carbon
@@ -29,7 +30,7 @@ class ReturnedClaimAmount extends Amount
     public function insertTo(AbstractContainer $container)
     {
         $textRun = $container->addTextRun();
-        $textRun->addText('Возвращено: ', ['bold' => true]);
+        $textRun->addText('Дополнительно взято: ', ['bold' => true]);
 
         parent::insertTo($textRun);
     }

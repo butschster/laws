@@ -3,8 +3,14 @@
 namespace App\Law;
 
 use App\FederalDistrict;
+use App\Law\Claim\AdditionalAmount;
+use App\Law\Claim\AdditionalAmounts;
+use App\Law\Claim\ClaimAmount;
+use App\Law\Claim\ClaimTax;
+use App\Law\Claim\Plaintiff;
+use App\Law\Claim\Respondent;
+use App\Law\Claim\ReturnedAmount;
 use Carbon\Carbon;
-use Illuminate\Support\Collection;
 
 /**
  * Займ
@@ -30,7 +36,7 @@ class Claim
     private $returnDate;
 
     /**
-     * @var AdditionalAmounts|AdditionalClaimAmount[]|ReturnedClaimAmount
+     * @var AdditionalAmounts|AdditionalAmount[]|ReturnedAmount
      */
     private $additionalAmounts = [];
 
@@ -47,6 +53,16 @@ class Claim
      * @var InterestRate
      */
     private $forfeit;
+
+    /**
+     * @var Plaintiff
+     */
+    private $plaintiff;
+
+    /**
+     * @var Respondent
+     */
+    private $respondent;
 
     /**
      * @param float $amount Сумма займа
@@ -69,6 +85,32 @@ class Claim
         $this->returnDate = $returnDate;
 
         $this->interestRate = new InterestRate($percents, $interval);
+    }
+
+    /**
+     * @param Plaintiff $plaintiff
+     * @param Respondent $respondent
+     */
+    public function setParticipants(Plaintiff $plaintiff, Respondent $respondent)
+    {
+        $this->plaintiff = $plaintiff;
+        $this->respondent = $respondent;
+    }
+
+    /**
+     * @return Plaintiff
+     */
+    public function plaintiff(): Plaintiff
+    {
+        return $this->plaintiff;
+    }
+
+    /**
+     * @return Respondent
+     */
+    public function respondent(): Respondent
+    {
+        return $this->respondent;
     }
 
     /**
@@ -99,7 +141,7 @@ class Claim
     /**
      * Получение списка фактов возвращения денег
      *
-     * @return AdditionalAmounts|ReturnedClaimAmount[]
+     * @return AdditionalAmounts|ReturnedAmount[]
      */
     public function returnedAmounts(): AdditionalAmounts
     {
@@ -122,7 +164,7 @@ class Claim
     }
 
     /**
-     * @return AdditionalClaimAmount[]|AdditionalAmounts
+     * @return AdditionalAmount[]|AdditionalAmounts
      */
     public function claimedAmounts(): AdditionalAmounts
     {
@@ -130,7 +172,7 @@ class Claim
     }
 
     /**
-     * @return AdditionalClaimAmount[]|ReturnedClaimAmount|AdditionalAmounts
+     * @return AdditionalAmount[]|ReturnedAmount|AdditionalAmounts
      */
     public function additionalAmounts(): AdditionalAmounts
     {
@@ -183,6 +225,11 @@ class Claim
     public function returnDate(): Carbon
     {
         return $this->returnDate;
+    }
+
+    public function court(): \App\Court
+    {
+        Court::detect($this->plaintiff, $this->respondent);
     }
 
     /**
@@ -245,17 +292,14 @@ class Claim
     }
 
     /**
-     * @param Plaintiff $plaintiff
-     * @param Respondent $respondent
-     *
-     * @return Tax
+     * @return ClaimTax
      */
-    public function calculateTax(Plaintiff $plaintiff, Respondent $respondent): Tax
+    public function calculateTax(): ClaimTax
     {
         return new ClaimTax(
             $this->calculate()->amountWithPercents(),
-            $plaintiff,
-            $respondent
+            $this->plaintiff,
+            $this->respondent
         );
     }
 }

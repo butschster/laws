@@ -22,6 +22,16 @@ interface Person
     /**
      * @return string
      */
+    public function ogrn(): string;
+
+    /**
+     * @return string
+     */
+    public function email(): string;
+
+    /**
+     * @return string
+     */
     public function type(): string;
 
     /**

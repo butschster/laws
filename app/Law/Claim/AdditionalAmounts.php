@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Law;
+namespace App\Law\Claim;
 
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -15,7 +15,7 @@ class AdditionalAmounts extends Collection
      */
     public function addReturnedAmount(Carbon $date, float $amount)
     {
-        $this->push(new ReturnedClaimAmount($amount, $date));
+        $this->push(new ReturnedAmount($amount, $date));
 
         return $this;
     }
@@ -28,7 +28,7 @@ class AdditionalAmounts extends Collection
      */
     public function addClaimedAmount(Carbon $date, float $amount)
     {
-        $this->push(new AdditionalClaimAmount($amount, $date));
+        $this->push(new AdditionalAmount($amount, $date));
 
         return $this;
     }
@@ -36,22 +36,22 @@ class AdditionalAmounts extends Collection
     /**
      * Получение списка фактов возвращения денег
      *
-     * @return Collection|ReturnedClaimAmount[]
+     * @return Collection|ReturnedAmount[]
      */
     public function returnedAmounts()
     {
         return $this->filter(function ($amount) {
-            return $amount instanceof ReturnedClaimAmount;
+            return $amount instanceof ReturnedAmount;
         })->values();
     }
 
     /**
-     * @return AdditionalClaimAmount[]|Collection
+     * @return AdditionalAmount[]|Collection
      */
     public function claimedAmounts()
     {
         return $this->filter(function ($amount) {
-            return $amount instanceof AdditionalClaimAmount;
+            return $amount instanceof AdditionalAmount;
         })->values();
     }
 

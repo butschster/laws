@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Law;
+namespace App\Law\Claim;
 
+use App\Law\Court;
+use App\Law\Tax;
 use PhpOffice\PhpWord\Element\AbstractContainer;
 
 class ClaimTax extends Tax
@@ -17,6 +19,11 @@ class ClaimTax extends Tax
     private $respondent;
 
     /**
+     * @var string
+     */
+    private $courtType;
+
+    /**
      * @param int $amount
      * @param Plaintiff $plaintiff
      * @param Respondent $respondent
@@ -25,6 +32,7 @@ class ClaimTax extends Tax
     {
         $this->plaintiff = $plaintiff;
         $this->respondent = $respondent;
+        $this->courtType = Court::detectType($plaintiff, $respondent);
 
         parent::__construct(
             $this->calculate($amount)
@@ -38,9 +46,7 @@ class ClaimTax extends Tax
      */
     protected function calculate(float $amount): float
     {
-        $courtType = Court::detectType($this->plaintiff, $this->respondent);
-
-        if ( $courtType == \App\Court::TYPE_ARBITR_SUBJ) {
+        if ( $this->courtType == \App\Court::TYPE_ARBITR_SUBJ) {
             if ($amount > 2000000) {
                 return min(200000, 33000 + ($amount - 2000000) * 0.005);
             } else if ($amount > 1000000) {
@@ -66,5 +72,19 @@ class ClaimTax extends Tax
         }
 
         return max(400, $amount * 0.04);
+    }
+
+    /**
+     * @param AbstractContainer $container
+     */
+    public function insertTo(AbstractContainer $container)
+    {
+        $textRun = $container->addTextRun();
+        $textRun->addText('Государственная пошлина: ', ['bold' => true]);
+        $textRun->addText(sprintf("в соответствие с %s Налогового кодекса РФ, государственная пошлина составляет ",
+            $this->courtType == \App\Court::TYPE_ARBITR_OKRUG ? 'пп.1 п.1 ст. 333.21' : 'пп.1 п.1 ст. 333.19'
+        ));
+
+        $container->addText($this->__toString());
     }
 }

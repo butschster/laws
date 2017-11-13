@@ -3,8 +3,8 @@
 namespace Module\FineCalculator;
 
 use App\FederalDistrict;
-use App\Law\AdditionalAmounts;
-use App\Law\ReturnedClaimAmount;
+use App\Law\Claim\AdditionalAmounts;
+use App\Law\Claim\ReturnedAmount;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Module\FineCalculator\Contracts\Calculator as CalculatorContract;
@@ -138,7 +138,7 @@ class Calculator implements CalculatorContract
 
         while ($additionalAmounts->count() > 0) {
 
-            /** @var ReturnedClaimAmount $amount */
+            /** @var ReturnedAmount $amount */
             $amount = $additionalAmounts->shift();
 
             $itemFrom = clone $amount->date();
@@ -146,7 +146,7 @@ class Calculator implements CalculatorContract
             foreach ($intervals as $i => $interval) {
                 if ($interval->contains($amount->date())) {
 
-                    if ($amount instanceof ReturnedClaimAmount) {
+                    if ($amount instanceof ReturnedAmount) {
                         $intervals[$i] = new Interval($interval->from(), $amount->date(), $interval->rate(), $interval->amount());
                         $intervals[] = new Interval($itemFrom->addDay(1), $interval->to(), $interval->rate(), $interval->amount());
                     } else {
