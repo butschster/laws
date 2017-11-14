@@ -117,7 +117,19 @@ class Amount implements ElementInterface
      */
     public function insertTo(AbstractContainer $container)
     {
-        $container->addText($this->__toString());
+        $container->addText($this->text());
+    }
+
+    /**
+     * @return string
+     */
+    public function text(): string
+    {
+        return sprintf(
+            "%s руб. %s коп.",
+            number_format($this->rubles(), 0, ',', ' '),
+            $this->pennies() > 9 ? $this->pennies() : '0'.$this->pennies()
+        );
     }
 
     /**
@@ -125,10 +137,6 @@ class Amount implements ElementInterface
      */
     public function __toString()
     {
-        return sprintf(
-            "%s руб. %s коп.",
-            number_format($this->rubles(), 0, ',', ' '),
-            $this->pennies() > 9 ? $this->pennies() : '0'.$this->pennies()
-        );
+        return $this->text();
     }
 }

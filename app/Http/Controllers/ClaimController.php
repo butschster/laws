@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use App\Law\Claim;
 use App\Law\InterestRate;
 use App\Law\Person;
+use App\Law\Plaintiff;
+use App\Law\Respondent;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use PhpOffice\PhpWord\PhpWord;
 use Validator;
 
 class ClaimController extends Controller
@@ -32,7 +33,56 @@ class ClaimController extends Controller
         return view('claim.index');
     }
 
-    public function send(Request $request, PhpWord $phpWord)
+    public function send(Request $request)
+    {
+        $validator = $this->makeValidationRules($request);
+
+        $validator->validate();
+        $data = $validator->getData();
+
+        $claim = new Claim(
+            $data['amount'],
+            custom_date($data['date_of_borrowing']),
+            custom_date($data['date_of_return']),
+            array_get($data, 'interest_bearing_loan.percent'),
+            array_get($data, 'interest_bearing_loan.interval')
+        );
+
+        $claim->setParticipants(
+            Plaintiff::fromArray($data['plaintiff']),
+            Respondent::fromArray($data['respondent'])
+        );
+
+        $document = new Claim\ClaimDocument($claim);
+
+        if ((bool) $data['has_claimed_money']) {
+            foreach (array_get($data, 'claimed_money', []) as $row) {
+                $claim->addClaimedMoney(custom_date($row['date']), $row['amount']);
+            }
+        }
+
+        if ((bool)$data['has_partly_returned_money']) {
+            foreach (array_get($data, 'partly_returned_money', []) as $row) {
+                $claim->addReturnedMoney(custom_date($row['date']), $row['amount']);
+            }
+        }
+
+        $forfeitType = array_get($data, 'forfeit.type');
+        if ((bool) $data['has_forfeit'] && $forfeitType == 'fine') {
+            $claim->setForfeit(array_get($data, 'forfeit.percent'), array_get($data, 'forfeit.interval'));
+        }
+
+        return [
+            'link' => url($document->save('test.docx'))
+        ];
+    }
+
+    /**
+     * @param Request $request
+     *
+     * @return \Illuminate\Validation\Validator
+     */
+    protected function makeValidationRules(Request $request): \Illuminate\Validation\Validator
     {
         $ruleIntervals = Rule::in(InterestRate::intervals());
 
@@ -75,17 +125,20 @@ class ClaimController extends Controller
 
         $validator->sometimes('forfeit.fine.interval', ['required', $ruleIntervals], function ($input) {
             $data = $input->toArray();
-            return (bool) array_get($data, 'has_forfeit', false) && array_get($data, 'forfeit.type') == 'fine';
+
+            return (bool)array_get($data, 'has_forfeit', false) && array_get($data, 'forfeit.type') == 'fine';
         });
 
         $validator->sometimes('forfeit.fine.percent', 'required|numeric|min:0|max:100', function ($input) {
             $data = $input->toArray();
-            return (bool) array_get($data, 'has_forfeit', false) && array_get($data, 'forfeit.type') == 'fine';
+
+            return (bool)array_get($data, 'has_forfeit', false) && array_get($data, 'forfeit.type') == 'fine';
         });
 
         $validator->sometimes('forfeit.mulct', 'required|numeric|min:0', function ($input) {
             $data = $input->toArray();
-            return (bool) array_get($data, 'has_forfeit', false) && array_get($data, 'forfeit.type') == 'mulct';
+
+            return (bool)array_get($data, 'has_forfeit', false) && array_get($data, 'forfeit.type') == 'mulct';
         });
 
         foreach (['respondent', 'plaintiff'] as $person) {
@@ -102,92 +155,20 @@ class ClaimController extends Controller
             });
 
             $validator->sometimes($person.'.fact_address', 'required|address', function ($input) use ($person) {
-                return (bool) array_get($input->toArray(), $person.'.has_fact_address', false);
+                return (bool)array_get($input->toArray(), $person.'.has_fact_address', false);
             });
         }
 
         foreach (['partly_returned_money', 'claimed_money'] as $additional) {
             $validator->sometimes($additional.'.*.date', 'required|date_format:d.m.Y|after:date_of_borrowing|before:date_of_return', function ($input) use ($additional) {
-                return (bool) array_get($input->toArray(), 'has_'.$additional, false);
+                return (bool)array_get($input->toArray(), 'has_'.$additional, false);
             });
 
             $validator->sometimes($additional.'.*.amount', 'required|numeric|min:0', function ($input) use ($additional) {
-                return (bool) array_get($input->toArray(), 'has_'.$additional, false);
+                return (bool)array_get($input->toArray(), 'has_'.$additional, false);
             });
         }
 
-
-        $validator->validate();
-
-        $data = $validator->getData();
-
-        $claim = new Claim(
-            $data['amount'],
-            custom_date($data['date_of_borrowing']),
-            custom_date($data['date_of_return']),
-            array_get($data, 'interest_bearing_loan.percent'),
-            array_get($data, 'interest_bearing_loan.interval')
-        );
-
-        $claim->setParticipants(
-            $plaintiff = \App\Law\Plaintiff::fromArray($data['plaintiff']),
-            $respondent = \App\Law\Respondent::fromArray($data['respondent'])
-        );
-
-        $document = new \App\Documents\SimpleDocument($phpWord);
-
-        $document->addElement(
-            new \App\Law\Claim\Header(
-                $claim = new Claim(
-                    $data['amount'],
-                    custom_date($data['date_of_borrowing']),
-                    custom_date($data['date_of_return']),
-                    array_get($data, 'interest_bearing_loan.percent'),
-                    array_get($data, 'interest_bearing_loan.interval')
-                )
-            )
-        );
-
-        $document->addTextBreak();
-
-        $document->addElement(
-            new \App\Documents\Elements\Title(
-                'ИСКОВОЕ ЗАЯВЛЕНИЕ',
-                'о взыскании денежных средств.'
-            )
-        );
-
-        if ((bool) $data['has_claimed_money']) {
-            foreach (array_get($data, 'claimed_money', []) as $row) {
-                $claim->addClaimedMoney(custom_date($row['date']), $row['amount']);
-            }
-        }
-
-        if ((bool)$data['has_partly_returned_money']) {
-            foreach (array_get($data, 'partly_returned_money', []) as $row) {
-                $claim->addReturnedMoney(custom_date($row['date']), $row['amount']);
-            }
-        }
-
-        $forfeitType = array_get($data, 'forfeit.type');
-        if ((bool) $data['has_forfeit'] && $forfeitType == 'fine') {
-            $claim->setForfeit(array_get($data, 'forfeit.percent'), array_get($data, 'forfeit.interval'));
-        }
-
-        $document->addElement(
-            new \App\Documents\Elements\SimplePlaintText(
-                $claim, $data['basis_of_loan']
-            )
-        );
-
-        $document->addTextBreak(2);
-
-        $document->addElement($plaintiff->sign());
-
-        return [
-            'link' => url($document->save('test.docx')),
-            'tax' => $tax->amount(),
-            'percents' => $claim->calculate()->toArray()
-        ];
+        return $validator;
     }
 }

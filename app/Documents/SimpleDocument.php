@@ -19,12 +19,9 @@ class SimpleDocument implements DocumentInterface
      */
     private $section;
 
-    /**
-     * @param PhpWord $phpWord
-     */
-    public function __construct(PhpWord $phpWord)
+    public function __construct()
     {
-        $this->word = $phpWord;
+        $this->word = new PhpWord();
 
         $phpWord->setDefaultFontName('Times New Roman');
 

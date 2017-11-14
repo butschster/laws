@@ -11,7 +11,7 @@ class SimplePlaintText implements ElementInterface
 {
 
     /**
-     * @var \App\Law\ClaimAmount
+     * @var \App\Law\Claim\ClaimAmount
      */
     private $amount;
 
@@ -21,19 +21,12 @@ class SimplePlaintText implements ElementInterface
     private $claim;
 
     /**
-     * @var string
-     */
-    private $basisOfLoan;
-
-    /**
      * @param Claim $claim
-     * @param string $basisOfLoan
      */
-    public function __construct(Claim $claim, string $basisOfLoan)
+    public function __construct(Claim $claim)
     {
         $this->claim = $claim;
         $this->amount = $claim->amount();
-        $this->basisOfLoan = $basisOfLoan;
     }
 
     /**
@@ -46,7 +39,7 @@ class SimplePlaintText implements ElementInterface
         $container->addText(sprintf(
             "Между Истцом и Ответчиком был заключен договор беспроцентного займа на сумму %s, что подтверждается %s от %s",
             (string) $this->amount,
-            $this->basisOfLoan == 'voucher' ? 'распиской' : 'договором',
+            $this->claim->basisOfLoan() == 'voucher' ? 'распиской' : 'договором',
             format_date($this->claim->borrowingDate())
         ));
 

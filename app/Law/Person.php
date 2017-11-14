@@ -173,14 +173,6 @@ class Person implements PersonContract, ElementInterface
     }
 
     /**
-     * @return string
-     */
-    public function title(): string
-    {
-        return '';
-    }
-
-    /**
      * @return UserSign
      */
     public function sign(): UserSign

@@ -65,18 +65,30 @@ class Claim
     private $respondent;
 
     /**
+     * @var string
+     */
+    private $courtType;
+
+    /**
+     * @var string
+     */
+    private $basisOfLoan;
+
+    /**
      * @param float $amount Сумма займа
      * @param Carbon $borrowingDate Дата выдачи
      * @param Carbon $returnDate Дата возврата
      * @param float $percents Процент
      * @param string $interval Период начисления
+     * @param string $basisOfLoan Тип соглашения (Расписка|Договор)
      */
     public function __construct(
         float $amount = 0,
         Carbon $borrowingDate,
         Carbon $returnDate,
         float $percents = 0,
-        string $interval = InterestRate::MONTHLY
+        string $interval = InterestRate::MONTHLY,
+        string $basisOfLoan
     ) {
         $this->additionalAmounts = new AdditionalAmounts();
         $this->amount = new ClaimAmount($amount);
@@ -85,6 +97,17 @@ class Claim
         $this->returnDate = $returnDate;
 
         $this->interestRate = new InterestRate($percents, $interval);
+
+        $this->basisOfLoan = $basisOfLoan;
+    }
+
+    /**
+     * Получение типа соглашения (Расписка|Договор)
+     * @return string
+     */
+    public function basisOfLoan(): string
+    {
+        return $this->basisOfLoan;
     }
 
     /**
@@ -95,9 +118,31 @@ class Claim
     {
         $this->plaintiff = $plaintiff;
         $this->respondent = $respondent;
+
+        $this->courtType = Court::detectType($plaintiff, $respondent);
+
+        $plaintiff->setCourtType($this->courtType);
+        $respondent->setCourtType($this->courtType);
     }
 
     /**
+     * Получение типа суда
+     *
+     * @return string
+     */
+    public function courtType(): string
+    {
+        return $this->courtType;
+    }
+
+    public function isMir(): bool
+    {
+        return $this->courtType() == \App\Court::TYPE_MIR;
+    }
+
+    /**
+     * Ответчик
+     *
      * @return Plaintiff
      */
     public function plaintiff(): Plaintiff
@@ -227,9 +272,14 @@ class Claim
         return $this->returnDate;
     }
 
+    /**
+     * Получение суда в котором будет рассматриваться дело
+     *
+     * @return \App\Court
+     */
     public function court(): \App\Court
     {
-        Court::detect($this->plaintiff, $this->respondent);
+        return Court::detect($this->plaintiff, $this->respondent);
     }
 
     /**
